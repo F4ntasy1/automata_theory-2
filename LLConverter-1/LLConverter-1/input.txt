@@ -1,4 +1,0 @@
-<S> - type I = T B / type
-<T> - int | record I: T B end / int,record
-<B> - e | ;I:T B / int,end,;
-<I> - a | b | c / a,b,c

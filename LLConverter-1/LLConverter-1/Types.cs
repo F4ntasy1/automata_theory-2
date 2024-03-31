@@ -25,17 +25,21 @@
         bool moveToNextLine = false,
         bool end = false
     )
-    { 
+    {
+        // нетерминал
         public string Token { get; set; } = token;
 
+        // направляющее множество символов, с которых может начинаться правило
         public List<string> DirectionSymbols { get; set; } = directionSymbols;
 
+        // сдвиг
         public bool Shift { get; set; } = shift;
 
         public bool Error { get; set; } = error;
 
         public int? Pointer { get; set; } = pointer;
 
+        // переходить на следующую строку после разбора текущей строки или нет (заносить ли в стек)
         public bool MoveToNextLine { get; set; } = moveToNextLine;
 
         public bool End { get; set; } = end;
