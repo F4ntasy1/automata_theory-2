@@ -9,35 +9,35 @@
         bool moveToNextLine,
         bool end
     )
-    {
-        public int? m_number;
+    { 
+        public int? Number;
 
-        public string m_token = token;
+        public string Token = token;
 
-        public List<string> m_directionSymbols = directionSymbols;
+        public List<string> DirectionSymbols = directionSymbols;
 
-        public bool m_shift = shift;
+        public bool Shift = shift;
 
-        public bool m_error = error;
+        public bool Error = error;
 
-        public int? m_pointer = pointer;
+        public int? Pointer = pointer;
 
-        public bool m_moveToNextLine = moveToNextLine;
+        public bool MoveToNextLine = moveToNextLine;
 
-        public bool m_end = end;
+        public bool End = end;
     }
 
     public class Table(List<Row> rows)
     {
-        public List<Row> m_rows = rows;
+        public List<Row> Rows = rows;
 
-        private int m_lastRowNumber = 0;
+        private int LastRowNumber = 0;
 
         public void PushRow(Row row)
         {
-            row.m_number = m_lastRowNumber;
-            m_rows.Add(row);
-            m_lastRowNumber++;
+            row.Number = LastRowNumber;
+            Rows.Add(row);
+            LastRowNumber++;
         }
     }
 }
