@@ -20,8 +20,11 @@ class Program
         //   new GrammarRule("E", new List<string>{"e"}, new List<string>{"e"}),
         //   new GrammarRule("F", new List<string>{"f"}, new List<string>{"f"}),
         //};
-        ////fileParser.ParseLinesToGrammarRules();
+        fileParser.ParseLinesToGrammarRules();
+        LLTableBuilder builder = new(fileParser.GrammarRules);
+        var table = builder.Build();
         //var table = fileParser.BuildTable();
+        table.Write(args[1]);
         foreach (GrammarRule rule in fileParser.GrammarRules) 
         {
             Console.WriteLine(rule.Token);
