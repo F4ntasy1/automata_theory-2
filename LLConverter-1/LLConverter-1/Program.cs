@@ -11,14 +11,17 @@ class Program
         }
 
         FileParser fileParser = new(args[0], true);
-        //fileParser.GrammarRules = new List<GrammarRule>{
-        //   new GrammarRule("S", new List<string>{"a", "A", "a", "B"}, new List<string>{"a"}),
-        //   new GrammarRule("A", new List<string>{"a", "A", "E"}, new List<string>{"a"}),
-        //   new GrammarRule("A", new List<string>{"E"}, new List<string>{"e"}),
-        //   new GrammarRule("B", new List<string>{"b", "B", "F"}, new List<string>{"b"}),
-        //   new GrammarRule("B", new List<string>{"F"}, new List<string>{"f"}),
-        //   new GrammarRule("E", new List<string>{"e"}, new List<string>{"e"}),
-        //   new GrammarRule("F", new List<string>{"f"}, new List<string>{"f"}),
+        //{
+        //    GrammarRules = [
+        //   new GrammarRule("S", ["a", "A", "a", "B"], ["a"]),
+        //   new GrammarRule("S", ["a"], ["a"]),
+        //   new GrammarRule("A", ["a", "A", "E"], ["a"]),
+        //   new GrammarRule("A", ["E"], ["e"]),
+        //   new GrammarRule("B", ["b", "B", "F"], ["b"]),
+        //   new GrammarRule("B", ["F"], ["f"]),
+        //   new GrammarRule("E", ["e"], ["e"]),
+        //   new GrammarRule("F", ["f"], ["f"]),
+        //]
         //};
         fileParser.ParseLinesToGrammarRules();
         LLTableBuilder builder = new(fileParser.GrammarRules);

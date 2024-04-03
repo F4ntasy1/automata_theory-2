@@ -15,8 +15,13 @@ namespace LLConverter_1
 
         public Table Build()
         {
+            var ptrsLeftPart = new List<int>();
             var leftRows = ParseLeftPart();
-            var rightRows = ParseRightPart();
+            var rightRows = ParseRightPart(ptrsLeftPart);
+            for (int i = 0; i < leftRows.Count; i++)
+            {
+                leftRows[i].Pointer = ptrsLeftPart[i];
+            }
             return new Table((leftRows.Concat(rightRows)).ToList());
         }
 
@@ -40,9 +45,8 @@ namespace LLConverter_1
                 {
                     nextToken = GrammarRules[i].Token;
                 }
-                //ptr++;
                 var row = new Row(GrammarRules[i].Token,
-                    GrammarRules[i].DirectionSymbols, false, error, ptr,
+                    GrammarRules[i].DirectionSymbols, false, error, null,
                     false, false);
                 result.Add(row);
                 ptr += GrammarRules[i].SymbolsChain.Count;
@@ -73,9 +77,25 @@ namespace LLConverter_1
             return result;
         }
 
-        private List<Row> ParseRightPart()
+        private List<int> ParseRulesForEndChars()
+        {
+            var result = new List<int>();
+            var firstChar = GrammarRules[0].Token;                        
+            for (int i = 0; i < GrammarRules.Count; i++)
+            {
+                if (GrammarRules[i].Token != firstChar) 
+                {
+                    break;
+                }
+                result.Add(i);
+            }
+            return result;
+        }
+
+        private List<Row> ParseRightPart(List<int> leftPartsPtrs)
         {
             var dict = DoMapOfNonTerminal();
+            var endsIdx = ParseRulesForEndChars();
             var rows = new List<Row>();
             for (int i = 0; i < GrammarRules.Count; i++)
             {
@@ -114,21 +134,28 @@ namespace LLConverter_1
                             {
                             symbol
                             };
-                            int? ptr = j == GrammarRules[i].SymbolsChain.Count - 1
-                                ? rows.Count + GrammarRules.Count : null;
+                            int? ptr = j != GrammarRules[i].SymbolsChain.Count - 1
+                                ? rows.Count + GrammarRules.Count + 1 : null;
                             var row = new Row(symbol, directions, true, true, ptr,
                                 moveToNextLine, false);
                             rows.Add(row);
                         }
 
                     }
-                    if (i == 0 && j == GrammarRules[i].SymbolsChain.Count - 1)
+                    if (endsIdx.Contains(i) && j == GrammarRules[i].SymbolsChain.Count - 1)
                     {
                         var row = new Row(END_CHAR,
-                            new List<string> { END_CHAR }, true, true, null, false, true);
+                            [END_CHAR], true, true, null, false, true);
                         rows.Add(row);
                     }
                 }
+                int ptrLeftPart = rows.Count - GrammarRules[i]
+                    .SymbolsChain.Count + GrammarRules.Count;
+                if (endsIdx.Contains(i))
+                {
+                    ptrLeftPart--;
+                }    
+                leftPartsPtrs.Add(ptrLeftPart);
             }
             return rows;
         }
