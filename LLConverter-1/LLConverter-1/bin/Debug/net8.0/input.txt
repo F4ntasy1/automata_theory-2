@@ -1,4 +1,4 @@
-<S> - type <I> IB = <T> <B> / type,type
+<S> - type <I> I B = <T> <B> / type,type
 <T> - int / int
 <T> - record <I>:<T> <B> end / record
 <B> - e / int,end

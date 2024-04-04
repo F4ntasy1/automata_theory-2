@@ -35,8 +35,8 @@ namespace LLConverter_1
                 writer.WriteLine(string.Join(";", GetHeadersOfTable()));
                 for (int i = 0; i < table.Rows.Count; i++)
                 {
-                    string line = i.ToString() + ";";
-                    line += table.Rows[i].Token + ";" + 
+                    string line = i.ToString() + ";";                    
+                    line += table.Rows[i].Token + ";" +
                         string.Join(",", table.Rows[i].DirectionSymbols);
                     line += ";" + WriteBool(table.Rows[i].Shift) + ";";
                     line += WriteBool(table.Rows[i].Error) + ";";

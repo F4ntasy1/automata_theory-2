@@ -15,6 +15,21 @@ namespace LLConverter_1
 
         public Table Build()
         {
+            for (int i = 0; i < GrammarRules.Count; i++)
+            {
+                for (int j = 0; j < GrammarRules[i].DirectionSymbols.Count; j++)
+                {
+                    GrammarRules[i].DirectionSymbols[j] = 
+                        GrammarRules[i].DirectionSymbols[j].Trim(' ');
+                }
+            }
+            //GrammarRules.ForEach(grammarRule =>
+            //{
+            //    grammarRule.DirectionSymbols.ForEach(ch =>
+            //    {
+            //        ch = ch.Trim();
+            //    });
+            //});
             var ptrsLeftPart = new List<int>();
             var leftRows = ParseLeftPart();
             var rightRows = ParseRightPart(ptrsLeftPart);

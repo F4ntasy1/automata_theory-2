@@ -5,7 +5,7 @@ class Program
 {
     public static void Main(string[] args)
     {
-        if (args.Length != 1)
+        if (args.Length != 2)
         {
             //throw new ArgumentException("Wrong arguments");
         }
@@ -26,7 +26,8 @@ class Program
         fileParser.ParseLinesToGrammarRules();
         LLTableBuilder builder = new(fileParser.GrammarRules);
         var table = builder.Build();
-        //var table = fileParser.BuildTable();
+        TableSlider slider = new();
+        //slider.RunSlider(table);
         table.Write("out.csv");
         foreach (GrammarRule rule in fileParser.GrammarRules) 
         {
