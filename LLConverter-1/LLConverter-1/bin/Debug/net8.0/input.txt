@@ -1,7 +1,7 @@
-<S> - type <I> I B = <T> <B> / type,type
+<S> - type <I> = <T> <B> / type
 <T> - int / int
 <T> - record <I>:<T> <B> end / record
-<B> - e / int,end
+<B> - e / "конец строки",end
 <B> - ;<I>:<T><B> / ;
 <I> - a / a
 <I> - b / b
