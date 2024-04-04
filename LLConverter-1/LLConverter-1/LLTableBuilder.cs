@@ -140,7 +140,7 @@ namespace LLConverter_1
                         if (symbol == EMPTY_CHAR)
                         {
                             var row = new Row(symbol, GrammarRules[i].DirectionSymbols,
-                                false, true, null, moveToNextLine, false);
+                                false, true, null, false, false);
                             rows.Add(row);
                         }
                         else
@@ -152,7 +152,7 @@ namespace LLConverter_1
                             int? ptr = j != GrammarRules[i].SymbolsChain.Count - 1
                                 ? rows.Count + GrammarRules.Count + 1 : null;
                             var row = new Row(symbol, directions, true, true, ptr,
-                                moveToNextLine, false);
+                                false, false);
                             rows.Add(row);
                         }
 

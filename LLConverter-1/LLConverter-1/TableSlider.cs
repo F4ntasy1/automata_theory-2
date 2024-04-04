@@ -31,7 +31,7 @@ namespace LLConverter_1
                     {
                         currRowNumber = currRow.Pointer.Value;
                     }
-                    else
+                    else 
                     {
                         if (!stack.TryPop(out currRowNumber))
                         {

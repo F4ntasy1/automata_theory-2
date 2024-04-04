@@ -27,7 +27,7 @@ class Program
         LLTableBuilder builder = new(fileParser.GrammarRules);
         var table = builder.Build();
         TableSlider slider = new();
-        //slider.RunSlider(table);
+        slider.RunSlider(table);
         table.Write("out.csv");
         foreach (GrammarRule rule in fileParser.GrammarRules) 
         {
