@@ -7,14 +7,14 @@ class Program
     {
         if (args.Length != 1)
         {
-            throw new ArgumentException("Wrong arguments");
+            //throw new ArgumentException("Wrong arguments");
         }
 
-        FileParser fileParser = new(args[0], true);
+        FileParser fileParser = new("input.txt", true);
         //{
         //    GrammarRules = [
         //   new GrammarRule("S", ["a", "A", "a", "B"], ["a"]),
-        //   new GrammarRule("S", ["a"], ["a"]),
+        //   //new GrammarRule("S", ["a"], ["a"]),
         //   new GrammarRule("A", ["a", "A", "E"], ["a"]),
         //   new GrammarRule("A", ["E"], ["e"]),
         //   new GrammarRule("B", ["b", "B", "F"], ["b"]),
@@ -27,7 +27,7 @@ class Program
         LLTableBuilder builder = new(fileParser.GrammarRules);
         var table = builder.Build();
         //var table = fileParser.BuildTable();
-        table.Write(args[1]);
+        table.Write("out.csv");
         foreach (GrammarRule rule in fileParser.GrammarRules) 
         {
             Console.WriteLine(rule.Token);

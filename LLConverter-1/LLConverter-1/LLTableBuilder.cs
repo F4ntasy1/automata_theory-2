@@ -124,7 +124,7 @@ namespace LLConverter_1
                                 ? false : true;
                         if (symbol == EMPTY_CHAR)
                         {
-                            var row = new Row(symbol, dict[GrammarRules[i].Token],
+                            var row = new Row(symbol, GrammarRules[i].DirectionSymbols,
                                 false, true, null, moveToNextLine, false);
                             rows.Add(row);
                         }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using Microsoft.VisualBasic;
+﻿using System.Text;
 
 namespace LLConverter_1
 {
@@ -105,13 +100,21 @@ namespace LLConverter_1
 
         private static string[] ReadFile(string fileName)
         {
-            using FileStream fstream = new(fileName, FileMode.Open);
-            byte[] buffer = new byte[fstream.Length];
+            var fileStream = File.OpenRead(fileName);
+            List<string> result = new();
+            string line;
+            using var reader = new StreamReader(fileStream);
+            while ((line = reader.ReadLine()) != null)
+            {
+                result.Add(line);
+            }
+            //using FileStream fstream = new(fileName, FileMode.Open);
+            //byte[] buffer = new byte[fstream.Length];
 
-            fstream.Read(buffer, 0, buffer.Length);
-            string textFromFile = Encoding.Default.GetString(buffer);
-
-            return textFromFile.Split('\n');
+            //fstream.Read(buffer, 0, buffer.Length);
+            //string textFromFile = Encoding.UTF8.GetString(buffer);
+            //var textFromFile1 = textFromFile.Replace('\r', '\0');
+            return result.ToArray();
         }
     }
 }
