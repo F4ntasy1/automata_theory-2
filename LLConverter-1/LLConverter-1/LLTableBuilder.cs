@@ -9,27 +9,12 @@ namespace LLConverter_1
     public class LLTableBuilder(List<GrammarRule> grammarRules)
     {
         private const string EMPTY_CHAR = "e";
-        private const string END_CHAR = "/";
+        private const string END_CHAR = "@";
 
         public List<GrammarRule> GrammarRules { get; private set; } = grammarRules;
 
         public Table Build()
         {
-            for (int i = 0; i < GrammarRules.Count; i++)
-            {
-                for (int j = 0; j < GrammarRules[i].DirectionSymbols.Count; j++)
-                {
-                    GrammarRules[i].DirectionSymbols[j] = 
-                        GrammarRules[i].DirectionSymbols[j].Trim(' ');
-                }
-            }
-            //GrammarRules.ForEach(grammarRule =>
-            //{
-            //    grammarRule.DirectionSymbols.ForEach(ch =>
-            //    {
-            //        ch = ch.Trim();
-            //    });
-            //});
             var ptrsLeftPart = new List<int>();
             var leftRows = ParseLeftPart();
             var rightRows = ParseRightPart(ptrsLeftPart);
@@ -37,6 +22,7 @@ namespace LLConverter_1
             {
                 leftRows[i].Pointer = ptrsLeftPart[i];
             }
+
             return new Table((leftRows.Concat(rightRows)).ToList());
         }
 
@@ -63,6 +49,7 @@ namespace LLConverter_1
                 var row = new Row(GrammarRules[i].Token,
                     GrammarRules[i].DirectionSymbols, false, error, null,
                     false, false);
+
                 result.Add(row);
                 ptr += GrammarRules[i].SymbolsChain.Count;
                 if (i == 0)

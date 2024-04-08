@@ -10,7 +10,7 @@ namespace LLConverter_1
     {
         //private string[] _str = ["type", "c", "=", "record", "a", ":", "int", ";", "b", ":", "int", "end", ";", "b", ":", "int"];
         //private string[] _str = ["type", "c", "=", "record", "a", ":", "int", "end"];
-        private string[] _str = ["type", "c", "=", "int"];
+        private string[] _str = ["type", "c", "=", "int", "@"];
         private int ptr = 0;
         public string GetNextToken()
         {

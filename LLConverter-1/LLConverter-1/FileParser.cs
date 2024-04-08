@@ -41,11 +41,6 @@ namespace LLConverter_1
                 {
                     // Искать мн-ва направляющих символов
                 }
-                grammarRule.SymbolsChain = ParseChainSymbols(line);
-                if (0 == i)
-                {
-                    grammarRule.SymbolsChain.Add(END_SYMBOL);
-                }
 
                 GrammarRules.Add(grammarRule);
             }
@@ -81,9 +76,9 @@ namespace LLConverter_1
         {
             if (!str.Contains(','))
             {
-                return [str];
+                return [str.Trim()];
             }
-            return new(str.Split(','));
+            return new(str.Trim().Split(','));
         }
 
         /*
