@@ -9,7 +9,8 @@ namespace LLConverter_1
         private const char START_TOKEN_CH = '<';
         private const char END_TOKEN_CH = '>';
         private const int LINE_SEPARATION_LENGTH = 3;
-        //private readonly string[] _lines;
+        private const string END_SYMBOL = "@";
+
         private readonly string[] _lines = ReadFile(fileName);
         private readonly bool _directionSymbolsExistsInFile = directionSymbolsExistsInFile;
 
@@ -41,6 +42,10 @@ namespace LLConverter_1
                     // Искать мн-ва направляющих символов
                 }
                 grammarRule.SymbolsChain = ParseChainSymbols(line);
+                if (0 == i)
+                {
+                    grammarRule.SymbolsChain.Add(END_SYMBOL);
+                }
 
                 GrammarRules.Add(grammarRule);
             }
@@ -101,8 +106,8 @@ namespace LLConverter_1
         private static string[] ReadFile(string fileName)
         {
             var fileStream = File.OpenRead(fileName);
-            List<string> result = new();
-            string line;
+            List<string> result = [];
+            string? line;
             using var reader = new StreamReader(fileStream);
             while ((line = reader.ReadLine()) != null)
             {
