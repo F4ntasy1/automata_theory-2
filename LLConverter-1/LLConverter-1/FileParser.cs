@@ -41,7 +41,11 @@ namespace LLConverter_1
                 {
                     // Искать мн-ва направляющих символов
                 }
-
+                grammarRule.SymbolsChain = ParseChainSymbols(line);
+                if (0 == i)
+                {
+                    grammarRule.SymbolsChain.Add(END_SYMBOL);
+                }
                 GrammarRules.Add(grammarRule);
             }
         }       

@@ -24,11 +24,11 @@ class Program
         //]
         //};
         fileParser.ParseLinesToGrammarRules();
-        LLTableBuilder builder = new(fileParser.GrammarRules);
-        var table = builder.Build();
+        LLTableBuilder builder = new();
+        var table = builder.Build(fileParser.GrammarRules);
         TableSlider slider = new();
+        table.Write("out.csv");        
         slider.RunSlider(table);
-        table.Write("out.csv");
         foreach (GrammarRule rule in fileParser.GrammarRules) 
         {
             Console.WriteLine(rule.Token);
