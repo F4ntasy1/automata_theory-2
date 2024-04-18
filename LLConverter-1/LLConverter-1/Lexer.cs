@@ -6,26 +6,39 @@ using System.Threading.Tasks;
 
 namespace LLConverter_1
 {
-    internal class Lexer
+    public class Lexer
     {
-        private string[] _str = ["type", "c", "=", "record", "a", ":", "int", "b", ":", "int", "end", "b", ":", "int", "@"];
-        //private string[] _str = ["type", "c", "=", "record", "a", ":", "int", ";", ";", "b", ":", "int", "end", ";", "b", ":", "int", "@"];
-        //private string[] _str = ["type", "c", "=", "record", "a", ":", "int", "end", "@"];
-        //private string[] _str = ["type", "c", "=", "int", "@"];
-        private int ptr = 0;
+        private List<string> _words = [];
+        private int _currWordIndex = 0;
+
+        public Lexer(string fileName) 
+        {
+            string[] lines = FileParser.ReadFile(fileName);
+
+            foreach (string line in lines)
+            {
+                foreach (string word in line.Split(' '))
+                {
+                    if (word.Length > 0 && word != " ")
+                    {
+                        _words.Add(word);
+                    }
+                }
+            }
+        }
+
         public string GetNextToken()
         {
-            if (IsEnd()) throw new Exception("Called GetNextToken() when Lexer IsEnd");
-            return _str[ptr++];
+            if (IsEnd())
+            {
+                throw new Exception("File is ended");
+            }
+            return _words[_currWordIndex++];
         }
 
         public bool IsEnd()
         {
-            return ptr >= _str.Length;
+            return _currWordIndex == _words.Count;
         }
     }
 }
-//S -> type I = T B 
-//T -> int | record I: T B end
-//B->e|; I: T B
-//I->a | b | c

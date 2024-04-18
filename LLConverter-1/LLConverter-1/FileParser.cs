@@ -9,12 +9,26 @@ namespace LLConverter_1
         private const char START_TOKEN_CH = '<';
         private const char END_TOKEN_CH = '>';
         private const int LINE_SEPARATION_LENGTH = 3;
+        private const string EMPTY_SYMBOL = "e";
         private const string END_SYMBOL = "@";
 
         private readonly string[] _lines = ReadFile(fileName);
         private readonly bool _directionSymbolsExistsInFile = directionSymbolsExistsInFile;
 
         private List<string> _tokens = [];
+
+        public static string[] ReadFile(string fileName)
+        {
+            var fileStream = File.OpenRead(fileName);
+            List<string> result = [];
+            string? line;
+            using var reader = new StreamReader(fileStream);
+            while ((line = reader.ReadLine()) != null)
+            {
+                result.Add(line);
+            }
+            return result.ToArray();
+        }
 
         public void ParseLinesToGrammarRules()
         {
@@ -37,10 +51,7 @@ namespace LLConverter_1
                     line = arr[0];
                     grammarRule.DirectionSymbols = ParseDirectionSymbols(arr[1]);
                 }
-                else
-                {
-                    // Искать мн-ва направляющих символов
-                }
+
                 grammarRule.SymbolsChain = ParseChainSymbols(line);
                 if (0 == i)
                 {
@@ -48,7 +59,31 @@ namespace LLConverter_1
                 }
                 GrammarRules.Add(grammarRule);
             }
-        }       
+
+            if (!_directionSymbolsExistsInFile)
+            {
+                FindDirectionSymbolsByRules();
+            }
+        }
+
+
+        /**
+         * Поиск направляющих символов
+         */
+        private void FindDirectionSymbolsByRules()
+        {
+            foreach (GrammarRule grammarRule in GrammarRules)
+            {
+                if (grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL))
+                {
+                    // Найти все направляющие символы для пустого
+                }
+                else
+                {
+                    grammarRule.DirectionSymbols.Add(grammarRule.SymbolsChain[0]);
+                }
+            }
+        }
        
         private List<string> ParseChainSymbols(string str)
         {
@@ -100,25 +135,6 @@ namespace LLConverter_1
                 string token = line[1..tokenEndPos];
                 _tokens.Add(token);
             }
-        }
-
-        private static string[] ReadFile(string fileName)
-        {
-            var fileStream = File.OpenRead(fileName);
-            List<string> result = [];
-            string? line;
-            using var reader = new StreamReader(fileStream);
-            while ((line = reader.ReadLine()) != null)
-            {
-                result.Add(line);
-            }
-            //using FileStream fstream = new(fileName, FileMode.Open);
-            //byte[] buffer = new byte[fstream.Length];
-
-            //fstream.Read(buffer, 0, buffer.Length);
-            //string textFromFile = Encoding.UTF8.GetString(buffer);
-            //var textFromFile1 = textFromFile.Replace('\r', '\0');
-            return result.ToArray();
         }
     }
 }
