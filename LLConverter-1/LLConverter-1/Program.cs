@@ -15,7 +15,7 @@ class Program
         table.Write("out.csv"); 
         try
         {
-            slider.RunSlider(table);
+            //slider.RunSlider(table);
             Console.WriteLine("all good");
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 
 namespace LLConverter_1
 {
@@ -60,10 +61,72 @@ namespace LLConverter_1
                 GrammarRules.Add(grammarRule);
             }
 
+            FixLeftRecursive();
+
             if (!_directionSymbolsExistsInFile)
             {
                 FindDirectionSymbolsByRules();
             }
+        }
+
+        private void FixLeftRecursive()
+        {
+            List <GrammarRule> rules = new List < GrammarRule >();
+            foreach (GrammarRule grammarRule in GrammarRules)
+            {
+                if(!rules.Contains(grammarRule))
+                    rules.AddRange(RemoveLeftRecursion(grammarRule));
+            }
+            GrammarRules = rules;
+        }
+
+        public List<GrammarRule> RemoveLeftRecursion(GrammarRule rule)
+        {
+            List<GrammarRule> nonRecursiveRules = [];
+
+            // Проверяем, есть ли левая рекурсия в правиле
+            if (HasLeftRecursion(rule))
+            {
+                // Создаем новый нетерминал для замены леворекурсивных правил
+                string newToken = rule.Token + "'";
+
+                var rules = GrammarRules.FindAll(x => x.Token == rule.Token && !HasLeftRecursion(x));
+
+                if(rules.Count == 0)
+                {
+                    throw new Exception("Can't remove left recursion");
+                }
+
+                GrammarRule newRuleForRemoveLeftRecursion = new(newToken, rule.SymbolsChain.GetRange(1, rule.SymbolsChain.Count - 1), rule.DirectionSymbols);
+                nonRecursiveRules.Add(newRuleForRemoveLeftRecursion);
+
+                for (int i = 0; i < rules.Count; i++)
+                {
+                    GrammarRule ruleWithoutLeftRecursion = rules[i];
+
+                    GrammarRule newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols);
+                    newRule.SymbolsChain.AddRange(ruleWithoutLeftRecursion.SymbolsChain);
+                    newRule.SymbolsChain.Add(newToken);
+
+                    nonRecursiveRules.Add(newRule);
+                }
+
+                // Добавляем правила для обработки случая epsilon-продукции
+                GrammarRule epsilonRule = new(newToken, ["e"], rule.DirectionSymbols);
+                nonRecursiveRules.Add(epsilonRule);
+            }
+            else
+            {
+                // Если нет левой рекурсии, просто добавляем правило в список
+                nonRecursiveRules.Add(rule);
+            }
+
+            return nonRecursiveRules;
+        }
+
+        private static bool HasLeftRecursion(GrammarRule rule)
+        {
+            return rule.SymbolsChain[0] == rule.Token;
         }
 
 

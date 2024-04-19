@@ -9,7 +9,7 @@ namespace LLConverter_1
     
     public class TableSlider
     {
-        private Lexer _lexer = new();
+        private Lexer _lexer = null;
         public void RunSlider(Table table)
         {
             if (table == null) return;
