@@ -42,16 +42,16 @@ namespace LLConverter_1
                 int startPos = _tokens[i].Length + 2 + LINE_SEPARATION_LENGTH;
                 string line = _lines[i][startPos..];
 
-                if (_directionSymbolsExistsInFile)
-                {
-                    string[] arr = line.Split('/');
-                    if (arr.Length != 2)
-                    {
-                        throw new Exception("Wrong line format");
-                    }
-                    line = arr[0];
-                    grammarRule.DirectionSymbols = ParseDirectionSymbols(arr[1]);
-                }
+                //if (_directionSymbolsExistsInFile)
+                //{
+                //    string[] arr = line.Split('/');
+                //    if (arr.Length != 2)
+                //    {
+                //        throw new Exception("Wrong line format");
+                //    }
+                //    line = arr[0];
+                //    grammarRule.DirectionSymbols = ParseDirectionSymbols(arr[1]);
+                //}
 
                 grammarRule.SymbolsChain = ParseChainSymbols(line);
                 if (0 == i)
@@ -71,11 +71,15 @@ namespace LLConverter_1
 
         private void FixLeftRecursive()
         {
-            List <GrammarRule> rules = new List < GrammarRule >();
+            List <GrammarRule> rules = [];
             foreach (GrammarRule grammarRule in GrammarRules)
             {
                 if(!rules.Contains(grammarRule))
                     rules.AddRange(RemoveLeftRecursion(grammarRule));
+                else
+                {
+                    rules.Add(grammarRule);
+                }
             }
             GrammarRules = rules;
         }
@@ -126,7 +130,7 @@ namespace LLConverter_1
 
         private static bool HasLeftRecursion(GrammarRule rule)
         {
-            return rule.SymbolsChain[0] == rule.Token;
+            return rule.SymbolsChain.Count > 0 && rule.SymbolsChain[0] == rule.Token;
         }
 
 
@@ -169,6 +173,11 @@ namespace LLConverter_1
                 {
                     accumulated += ch;
                 }
+            }
+
+            if(accumulated != "")
+            {
+                result.Add(accumulated);
             }
 
             return result;
