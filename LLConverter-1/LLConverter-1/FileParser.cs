@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace LLConverter_1
@@ -72,16 +73,11 @@ namespace LLConverter_1
         private void FixLeftRecursive()
         {
             List <GrammarRule> rules = [];
-            foreach (GrammarRule grammarRule in GrammarRules)
+            List <GrammarRule> ruleыWithLeftRecursion = GrammarRules.FindAll(HasLeftRecursion);
+            foreach (GrammarRule grammarRule in ruleыWithLeftRecursion)
             {
-                if(!rules.Contains(grammarRule))
-                    rules.AddRange(RemoveLeftRecursion(grammarRule));
-                else
-                {
-                    rules.Add(grammarRule);
-                }
+                rules.AddRange(RemoveLeftRecursion(grammarRule));
             }
-            GrammarRules = rules;
         }
 
         public List<GrammarRule> RemoveLeftRecursion(GrammarRule rule)
@@ -102,15 +98,21 @@ namespace LLConverter_1
                 }
 
                 GrammarRule newRuleForRemoveLeftRecursion = new(newToken, rule.SymbolsChain.GetRange(1, rule.SymbolsChain.Count - 1), rule.DirectionSymbols);
+                newRuleForRemoveLeftRecursion.SymbolsChain.Add(newToken);
                 nonRecursiveRules.Add(newRuleForRemoveLeftRecursion);
 
+                GrammarRules[GrammarRules.IndexOf(rule)] = newRuleForRemoveLeftRecursion;
+
+                GrammarRule ruleWithoutLeftRecursion = new (rules[0].Token, [], rule.DirectionSymbols);
                 for (int i = 0; i < rules.Count; i++)
                 {
-                    GrammarRule ruleWithoutLeftRecursion = rules[i];
+                    ruleWithoutLeftRecursion = rules[i];
 
                     GrammarRule newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols);
                     newRule.SymbolsChain.AddRange(ruleWithoutLeftRecursion.SymbolsChain);
                     newRule.SymbolsChain.Add(newToken);
+
+                    GrammarRules[GrammarRules.IndexOf(ruleWithoutLeftRecursion)] = newRule;
 
                     nonRecursiveRules.Add(newRule);
                 }
@@ -118,6 +120,8 @@ namespace LLConverter_1
                 // Добавляем правила для обработки случая epsilon-продукции
                 GrammarRule epsilonRule = new(newToken, ["e"], rule.DirectionSymbols);
                 nonRecursiveRules.Add(epsilonRule);
+
+                GrammarRules.Insert(GrammarRules.IndexOf(GrammarRules.FindLast(x => x.Token == newToken)), epsilonRule);
             }
             else
             {
