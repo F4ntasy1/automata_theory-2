@@ -143,19 +143,77 @@ namespace LLConverter_1
          */
         private void FindDirectionSymbolsByRules()
         {
+            int tokenIdx = 0;
+            List<(int idx, string token)> tmpList = [];
             foreach (GrammarRule grammarRule in GrammarRules)
             {
                 if (grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL))
                 {
-                    // Найти все направляющие символы для пустого
+                    tmpList.Add((tokenIdx, grammarRule.Token));
+                    //FindDirectionSymbolsForEmptyChar(tokenIdx, grammarRule.Token);
                 }
                 else
                 {
                     grammarRule.DirectionSymbols.Add(grammarRule.SymbolsChain[0]);
                 }
+                tokenIdx++;
+            }
+            foreach (var (idx, token) in tmpList)
+            {
+                FindDirectionSymbolsForEmptyChar(idx, token);
             }
         }
-       
+        bool CheckForNonTerminal(string token)
+        {
+            foreach (GrammarRule grammarRule in GrammarRules)
+            {
+                if (grammarRule.Token == token)
+                {
+                    return true;
+                }    
+            }  
+            return false;
+        }
+        List<string> GetDirectionCharsByToken(string token)
+        {
+            List<string> result = [];
+            foreach (GrammarRule grammarRule in GrammarRules)
+            {
+                if (token == grammarRule.Token)
+                {
+                    result.AddRange(grammarRule.DirectionSymbols);
+                }
+            }
+            return result;
+        }
+        private void FindDirectionSymbolsForEmptyChar(int tokenIdx, string token)
+        {
+            List<string> directionsChars = [];
+            foreach (GrammarRule grammarRule in GrammarRules)
+            {
+                var idx = grammarRule.SymbolsChain.IndexOf(token);
+                if (idx != -1 && idx != grammarRule.SymbolsChain.Count - 1)
+                {
+                    string symbol = grammarRule.SymbolsChain[idx + 1];
+                    if (CheckForNonTerminal(symbol))
+                    {
+                        directionsChars.AddRange(GetDirectionCharsByToken(token));
+                    }
+                    else
+                    {
+                        directionsChars.Add(symbol);
+                    }
+                }
+            }
+            if (directionsChars.Count == 0)
+            {
+                throw new Exception("Direction chars empty for token - " + token + " with idx " + idx);
+            }
+            foreach (var ch in directionsChars)
+            {
+                GrammarRules[tokenIdx].DirectionSymbols.Add(ch);
+            }
+        }
         private List<string> ParseChainSymbols(string str)
         {
             List<string> result = [];
