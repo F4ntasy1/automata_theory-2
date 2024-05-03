@@ -106,9 +106,29 @@ namespace LLConverter_1
                 GrammarRule ruleWithoutLeftRecursion = new (rules[0].Token, [], rule.DirectionSymbols);
                 for (int i = 0; i < rules.Count; i++)
                 {
+
                     ruleWithoutLeftRecursion = rules[i];
 
-                    GrammarRule newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols);
+                    if (ruleWithoutLeftRecursion.SymbolsChain.Count == 0 )
+                    {
+                        continue;
+                    }
+
+                    GrammarRule newRule;
+                    if (ruleWithoutLeftRecursion.SymbolsChain[0] == EMPTY_SYMBOL)
+                    {
+                        newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols);
+                        newRule.SymbolsChain.AddRange(newRuleForRemoveLeftRecursion.SymbolsChain.GetRange(0, rule.SymbolsChain.Count - 1));
+                        newRule.SymbolsChain.Add(newToken);
+
+                        GrammarRules.Insert(GrammarRules.IndexOf(ruleWithoutLeftRecursion)+1, newRule);
+
+                        nonRecursiveRules.Add(newRule);
+                            
+                        continue;
+                    }
+
+                    newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols); 
                     newRule.SymbolsChain.AddRange(ruleWithoutLeftRecursion.SymbolsChain);
                     newRule.SymbolsChain.Add(newToken);
 
@@ -121,7 +141,7 @@ namespace LLConverter_1
                 GrammarRule epsilonRule = new(newToken, ["e"], rule.DirectionSymbols);
                 nonRecursiveRules.Add(epsilonRule);
 
-                GrammarRules.Insert(GrammarRules.IndexOf(GrammarRules.FindLast(x => x.Token == newToken)), epsilonRule);
+                GrammarRules.Insert(GrammarRules.IndexOf(GrammarRules.FindLast(x => x.Token == newToken))+1, epsilonRule);
             }
             else
             {
@@ -191,7 +211,7 @@ namespace LLConverter_1
             List<string> directionsChars = [];
             foreach (GrammarRule grammarRule in GrammarRules)
             {
-                var idx = grammarRule.SymbolsChain.IndexOf(token);
+                int idx = grammarRule.SymbolsChain.IndexOf(token);
                 if (idx != -1 && idx != grammarRule.SymbolsChain.Count - 1)
                 {
                     string symbol = grammarRule.SymbolsChain[idx + 1];
@@ -207,7 +227,7 @@ namespace LLConverter_1
             }
             if (directionsChars.Count == 0)
             {
-                throw new Exception("Direction chars empty for token - " + token + " with idx " + idx);
+                throw new Exception("Direction chars empty for token - " + token + " with idx " + tokenIdx);
             }
             foreach (var ch in directionsChars)
             {
