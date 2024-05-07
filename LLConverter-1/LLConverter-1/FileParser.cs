@@ -72,17 +72,17 @@ namespace LLConverter_1
 
         private void FixLeftRecursive()
         {
-            List <GrammarRule> rules = [];
-            List <GrammarRule> ruleыWithLeftRecursion = GrammarRules.FindAll(HasLeftRecursion);
+            List<GrammarRule> ruleыWithLeftRecursion = GrammarRules.FindAll(HasLeftRecursion);
+            List<GrammarRule> rulesPassed = [];
             foreach (GrammarRule grammarRule in ruleыWithLeftRecursion)
             {
-                rules.AddRange(RemoveLeftRecursion(grammarRule));
+                RemoveLeftRecursion(grammarRule, rulesPassed);
+                rulesPassed.Add(grammarRule);
             }
         }
 
-        public List<GrammarRule> RemoveLeftRecursion(GrammarRule rule)
+        public void RemoveLeftRecursion(GrammarRule rule, List<GrammarRule> rulesPassed)
         {
-            List<GrammarRule> nonRecursiveRules = [];
 
             // Проверяем, есть ли левая рекурсия в правиле
             if (HasLeftRecursion(rule))
@@ -97,11 +97,16 @@ namespace LLConverter_1
                     throw new Exception("Can't remove left recursion");
                 }
 
+                /*B' -> aB'*/
                 GrammarRule newRuleForRemoveLeftRecursion = new(newToken, rule.SymbolsChain.GetRange(1, rule.SymbolsChain.Count - 1), rule.DirectionSymbols);
                 newRuleForRemoveLeftRecursion.SymbolsChain.Add(newToken);
-                nonRecursiveRules.Add(newRuleForRemoveLeftRecursion);
 
                 GrammarRules[GrammarRules.IndexOf(rule)] = newRuleForRemoveLeftRecursion;
+
+                if(rulesPassed.FindAll(x => x.Token == rule.Token).Count > 0)
+                {
+                    return;
+                }
 
                 GrammarRule ruleWithoutLeftRecursion = new (rules[0].Token, [], rule.DirectionSymbols);
                 for (int i = 0; i < rules.Count; i++)
@@ -117,39 +122,26 @@ namespace LLConverter_1
                     GrammarRule newRule;
                     if (ruleWithoutLeftRecursion.SymbolsChain[0] == EMPTY_SYMBOL)
                     {
-                        newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols);
-                        newRule.SymbolsChain.AddRange(newRuleForRemoveLeftRecursion.SymbolsChain.GetRange(0, rule.SymbolsChain.Count - 1));
-                        newRule.SymbolsChain.Add(newToken);
+                        //newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols);
+                        //newRule.SymbolsChain.AddRange(newRuleForRemoveLeftRecursion.SymbolsChain.GetRange(0, rule.SymbolsChain.Count - 1));
+                        //newRule.SymbolsChain.Add(newToken);
 
-                        GrammarRules.Insert(GrammarRules.IndexOf(ruleWithoutLeftRecursion)+1, newRule);
-
-                        nonRecursiveRules.Add(newRule);
+                        //GrammarRules.Insert(GrammarRules.IndexOf(ruleWithoutLeftRecursion)+1, newRule);
                             
                         continue;
                     }
 
-                    newRule = new(ruleWithoutLeftRecursion.Token, [], rule.DirectionSymbols); 
-                    newRule.SymbolsChain.AddRange(ruleWithoutLeftRecursion.SymbolsChain);
+                    newRule = new(ruleWithoutLeftRecursion.Token, ruleWithoutLeftRecursion.SymbolsChain, rule.DirectionSymbols); 
                     newRule.SymbolsChain.Add(newToken);
 
                     GrammarRules[GrammarRules.IndexOf(ruleWithoutLeftRecursion)] = newRule;
-
-                    nonRecursiveRules.Add(newRule);
                 }
 
                 // Добавляем правила для обработки случая epsilon-продукции
                 GrammarRule epsilonRule = new(newToken, ["e"], rule.DirectionSymbols);
-                nonRecursiveRules.Add(epsilonRule);
 
                 GrammarRules.Insert(GrammarRules.IndexOf(GrammarRules.FindLast(x => x.Token == newToken))+1, epsilonRule);
             }
-            else
-            {
-                // Если нет левой рекурсии, просто добавляем правило в список
-                nonRecursiveRules.Add(rule);
-            }
-
-            return nonRecursiveRules;
         }
 
         private static bool HasLeftRecursion(GrammarRule rule)
