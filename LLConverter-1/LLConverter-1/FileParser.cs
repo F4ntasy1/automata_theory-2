@@ -120,8 +120,7 @@ namespace LLConverter_1
                     }
 
                     GrammarRule newRule;
-                    if (ruleWithoutLeftRecursion.SymbolsChain[0] == EMPTY_SYMBOL 
-                        )
+                    if (ruleWithoutLeftRecursion.SymbolsChain[0] == EMPTY_SYMBOL)
                     {
                         newRule = new(rule.Token, [], rule.DirectionSymbols);
                         newRule.SymbolsChain.AddRange(newRuleForRemoveLeftRecursion.SymbolsChain);
