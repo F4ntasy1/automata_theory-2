@@ -64,10 +64,14 @@ namespace LLConverter_1
 
             FixLeftRecursive();
 
+            PrintGrammarRules();
+
             if (!_directionSymbolsExistsInFile)
             {
                 FindDirectionSymbolsByRules();
             }
+
+            PrintGrammarRules();
         }
 
         private void FixLeftRecursive()
@@ -163,51 +167,58 @@ namespace LLConverter_1
          */
         private void FindDirectionSymbolsByRules()
         {
-            int tokenIdx = 0;
-            List<(int idx, string token)> tmpList = [];
-            foreach (GrammarRule grammarRule in GrammarRules)
+            List<int> listOfTokenIndexesWithEmptyChars = [];
+            for (int index = 0; index < GrammarRules.Count; index++)
             {
+                var grammarRule = GrammarRules[index];
                 if (grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL))
                 {
-                    tmpList.Add((tokenIdx, grammarRule.Token));
-                    //FindDirectionSymbolsForEmptyChar(tokenIdx, grammarRule.Token);
+                    listOfTokenIndexesWithEmptyChars.Add(index);
                 }
-                else
+                else if (0 == grammarRule.DirectionSymbols.Count)
                 {
-                    grammarRule.DirectionSymbols.Add(grammarRule.SymbolsChain[0]);
-                }
-                tokenIdx++;
-            }
-            foreach (var (idx, token) in tmpList)
-            {
-                FindDirectionSymbolsForEmptyChar(idx, token);
-            }
-        }
-        bool CheckForNonTerminal(string token)
-        {
-            foreach (GrammarRule grammarRule in GrammarRules)
-            {
-                if (grammarRule.Token == token)
-                {
-                    return true;
-                }    
-            }  
-            return false;
-        }
-        List<string> GetDirectionCharsByToken(string token)
-        {
-            List<string> result = [];
-            foreach (GrammarRule grammarRule in GrammarRules)
-            {
-                if (token == grammarRule.Token)
-                {
-                    result.AddRange(grammarRule.DirectionSymbols);
+                    Console.WriteLine("Grammar rule: " + grammarRule.Token + " " + index + "; ");
+                    grammarRule.DirectionSymbols.AddRange(FindDirectionSymbolsForToken(index));
+                    PrintGrammarRules();
                 }
             }
-            return result;
+
+            foreach (int index in listOfTokenIndexesWithEmptyChars)
+            {
+                FindDirectionSymbolsForEmptyChar(index);
+            }
         }
-        private void FindDirectionSymbolsForEmptyChar(int tokenIdx, string token)
+
+        // Не работает
+        //
+        //
+        //
+        //
+        private List<string> FindDirectionSymbolsForToken(int tokenIdx)
         {
+            var grammarRule = GrammarRules[tokenIdx];
+            var firstChainCharacter = grammarRule.SymbolsChain[0];
+
+            if (TokenIsNonTerminal(firstChainCharacter))
+            {
+                List<string> result = [];
+                for (int i = 0; i < GrammarRules.Count; i++)
+                {
+                    if (GrammarRules[i].Token == firstChainCharacter && i != tokenIdx)
+                    {
+                        result.AddRange(FindDirectionSymbolsForToken(i));
+                    }
+                }
+                // Удаление дубликатов
+                return result.Distinct().ToList();
+            }
+
+            return grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL) ? [] : [firstChainCharacter];
+        }
+
+        private void FindDirectionSymbolsForEmptyChar(int tokenIdx)
+        {
+            var token = GrammarRules[tokenIdx].Token;
             List<string> directionsChars = [];
             foreach (GrammarRule grammarRule in GrammarRules)
             {
@@ -215,9 +226,9 @@ namespace LLConverter_1
                 if (idx != -1 && idx != grammarRule.SymbolsChain.Count - 1)
                 {
                     string symbol = grammarRule.SymbolsChain[idx + 1];
-                    if (CheckForNonTerminal(symbol))
+                    if (TokenIsNonTerminal(symbol))
                     {
-                        directionsChars.AddRange(GetDirectionCharsByToken(token));
+                        directionsChars.AddRange(GetDirectionSymbolsByToken(token));
                     }
                     else
                     {
@@ -234,6 +245,32 @@ namespace LLConverter_1
                 GrammarRules[tokenIdx].DirectionSymbols.Add(ch);
             }
         }
+
+        List<string> GetDirectionSymbolsByToken(string token)
+        {
+            List<string> result = [];
+            foreach (GrammarRule grammarRule in GrammarRules)
+            {
+                if (token == grammarRule.Token)
+                {
+                    result.AddRange(grammarRule.DirectionSymbols);
+                }
+            }
+            return result;
+        }
+
+        bool TokenIsNonTerminal(string token)
+        {
+            foreach (GrammarRule grammarRule in GrammarRules)
+            {
+                if (grammarRule.Token == token)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private List<string> ParseChainSymbols(string str)
         {
             List<string> result = [];
@@ -289,6 +326,26 @@ namespace LLConverter_1
                 string token = line[1..tokenEndPos];
                 _tokens.Add(token);
             }
+        }
+
+        private void PrintGrammarRules()
+        {
+            Console.WriteLine("<------------------->");
+            foreach (var rule in GrammarRules)
+            {
+                Console.Write(rule.Token + " -> ");
+                foreach (var s in rule.SymbolsChain)
+                {
+                    Console.Write(s + "");
+                }
+                Console.Write(" / ");
+                foreach (var s in rule.DirectionSymbols)
+                {
+                    Console.Write(s + "");
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("<------------------->");
         }
     }
 }
