@@ -6,7 +6,7 @@ class Program
     public static void Main(string[] args)
     {
 
-        FileParser fileParser = new("input1.txt", false);
+        FileParser fileParser = new("input2.txt", false);
         
         fileParser.ParseLinesToGrammarRules();
         LLTableBuilder builder = new();
