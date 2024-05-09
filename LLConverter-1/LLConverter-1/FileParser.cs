@@ -64,14 +64,10 @@ namespace LLConverter_1
 
             FixLeftRecursive();
 
-            PrintGrammarRules();
-
             if (!_directionSymbolsExistsInFile)
             {
                 FindDirectionSymbolsByRules();
             }
-
-            PrintGrammarRules();
         }
 
         private void FixLeftRecursive()
@@ -170,7 +166,6 @@ namespace LLConverter_1
                 else if (0 == grammarRule.DirectionSymbols.Count)
                 {
                     grammarRule.DirectionSymbols.AddRange(FindDirectionSymbolsForToken(index));
-                    PrintGrammarRules();
                 }
             }
 
@@ -314,6 +309,7 @@ namespace LLConverter_1
             }
         }
 
+        // Вспомогательный вывод
         private void PrintGrammarRules()
         {
             Console.WriteLine("<------------------->");
