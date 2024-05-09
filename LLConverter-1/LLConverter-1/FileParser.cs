@@ -87,7 +87,6 @@ namespace LLConverter_1
 
         public void RemoveLeftRecursion(GrammarRule rule, List<GrammarRule> rulesPassed)
         {
-
             // Проверяем, есть ли левая рекурсия в правиле
             if (HasLeftRecursion(rule))
             {
@@ -102,7 +101,7 @@ namespace LLConverter_1
                 }
 
                 /*B' -> aB'*/
-                GrammarRule newRuleForRemoveLeftRecursion = new(newToken, rule.SymbolsChain.GetRange(1, rule.SymbolsChain.Count - 1), rule.DirectionSymbols);
+                GrammarRule newRuleForRemoveLeftRecursion = new(newToken, new(rule.SymbolsChain.GetRange(1, rule.SymbolsChain.Count - 1)), new(rule.DirectionSymbols));
                 newRuleForRemoveLeftRecursion.SymbolsChain.Add(newToken);
 
                 GrammarRules[GrammarRules.IndexOf(rule)] = newRuleForRemoveLeftRecursion;
@@ -112,10 +111,9 @@ namespace LLConverter_1
                     return;
                 }
 
-                GrammarRule ruleWithoutLeftRecursion = new (rules[0].Token, [], rule.DirectionSymbols);
+                GrammarRule ruleWithoutLeftRecursion = new (rules[0].Token, [], new(rule.DirectionSymbols));
                 for (int i = 0; i < rules.Count; i++)
                 {
-
                     ruleWithoutLeftRecursion = rules[i];
 
                     if (ruleWithoutLeftRecursion.SymbolsChain.Count == 0 )
@@ -126,7 +124,7 @@ namespace LLConverter_1
                     GrammarRule newRule;
                     if (ruleWithoutLeftRecursion.SymbolsChain[0] == EMPTY_SYMBOL)
                     {
-                        newRule = new(rule.Token, [], rule.DirectionSymbols);
+                        newRule = new(rule.Token, [], new(rule.DirectionSymbols));
                         newRule.SymbolsChain.AddRange(newRuleForRemoveLeftRecursion.SymbolsChain);
                         //newRule.SymbolsChain.Add(newToken);
 
@@ -135,18 +133,17 @@ namespace LLConverter_1
                             GrammarRules.Insert(GrammarRules.IndexOf(ruleWithoutLeftRecursion) + 1, newRule);
                         }
 
-
                         continue;
                     }
 
-                    newRule = new(ruleWithoutLeftRecursion.Token, ruleWithoutLeftRecursion.SymbolsChain, rule.DirectionSymbols); 
+                    newRule = new(ruleWithoutLeftRecursion.Token, new(ruleWithoutLeftRecursion.SymbolsChain), new(rule.DirectionSymbols)); 
                     newRule.SymbolsChain.Add(newToken);
 
                     GrammarRules[GrammarRules.IndexOf(ruleWithoutLeftRecursion)] = newRule;
                 }
 
                 // Добавляем правила для обработки случая epsilon-продукции
-                GrammarRule epsilonRule = new(newToken, ["e"], rule.DirectionSymbols);
+                GrammarRule epsilonRule = new(newToken, ["e"], new(rule.DirectionSymbols));
 
                 GrammarRules.Insert(GrammarRules.IndexOf(GrammarRules.FindLast(x => x.Token == newToken))+1, epsilonRule);
             }
@@ -156,7 +153,6 @@ namespace LLConverter_1
         {
             return rule.SymbolsChain.Count > 0 && rule.SymbolsChain[0] == rule.Token;
         }
-
 
         /**
          * Поиск направляющих символов
@@ -173,7 +169,6 @@ namespace LLConverter_1
                 }
                 else if (0 == grammarRule.DirectionSymbols.Count)
                 {
-                    Console.WriteLine("Grammar rule: " + grammarRule.Token + " " + index + "; ");
                     grammarRule.DirectionSymbols.AddRange(FindDirectionSymbolsForToken(index));
                     PrintGrammarRules();
                 }
@@ -185,11 +180,6 @@ namespace LLConverter_1
             }
         }
 
-        // Не работает
-        //
-        //
-        //
-        //
         private List<string> FindDirectionSymbolsForToken(int tokenIdx)
         {
             var grammarRule = GrammarRules[tokenIdx];
