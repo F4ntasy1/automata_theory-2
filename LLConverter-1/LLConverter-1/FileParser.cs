@@ -216,58 +216,6 @@ namespace LLConverter_1
             return grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL) ? Follow(grammarRule.Token).Distinct().ToList() : [firstChainCharacter];
         }
 
-        private void FindDirectionSymbolsForEmptyChar(int currTokenIdx, int corrTokenIdx = -1)
-        {
-            int realIdx = corrTokenIdx == -1 ? currTokenIdx : corrTokenIdx;
-            var token = GrammarRules[currTokenIdx].Token;
-            List<string> directionsChars = [];
-            for (int i = 0; i < GrammarRules.Count; i++)
-            {
-                var grammarRule = GrammarRules[i];
-                int idx = grammarRule.SymbolsChain.IndexOf(token);
-                if (idx == -1)
-                {
-                    //tmpIdx++;
-                    continue;
-                }
-                if (idx != grammarRule.SymbolsChain.Count - 1)
-                {
-                    string symbol = grammarRule.SymbolsChain[idx + 1];
-                    if (TokenIsNonTerminal(symbol))
-                    {
-                        directionsChars.AddRange(GetDirectionSymbolsByToken(symbol));
-                        //var gramRules = GrammarRules.FindAll(g => g.Token == symbol);
-                        //gramRules.ForEach(gr =>
-                        //{
-                        //    directionsChars.AddRange(GetDirectionSymbolsByToken(
-                        //        GrammarRules.IndexOf(gr)));
-                        //});
-                    }
-                    else
-                    {
-                        directionsChars.Add(symbol);
-                    }
-                }
-                if (idx == grammarRule.SymbolsChain.Count - 1 ||
-                    (idx == grammarRule.SymbolsChain.Count - 2 && i == 0))
-                {
-                    if (token != GrammarRules[i].Token)
-                    {
-                        //int param = corrTokenIdx == -1 ? currTokenIdx : corrTokenIdx;
-                        FindDirectionSymbolsForEmptyChar(i, realIdx);
-                    }
-                }
-            }
-            GrammarRules[realIdx].DirectionSymbols.AddRange(directionsChars.Distinct());
-            if (corrTokenIdx == -1)
-            {
-                if (GrammarRules[currTokenIdx].DirectionSymbols.Count == 0)
-                {
-                    throw new Exception($"Direction chars empty for token - {token} with idx {currTokenIdx}");                    
-                }
-            }
-        }
-
         List<string> Follow(string token)
         {
             List<string> dirSymbols = [];
@@ -280,6 +228,15 @@ namespace LLConverter_1
 
                 int idx = grammarRule.SymbolsChain.IndexOf(token);
 
+                if (idx == grammarRule.SymbolsChain.Count - 1 ||
+                    (idx == grammarRule.SymbolsChain.Count - 2 && GrammarRules.IndexOf(grammarRule) == 0))
+                {
+                    if (token != grammarRule.Token)
+                    {
+                        dirSymbols.AddRange(Follow(grammarRule.Token));
+                        continue;
+                    }
+                }
                 if (idx != grammarRule.SymbolsChain.Count - 1)
                 {
                     string symbol = grammarRule.SymbolsChain[idx + 1];
@@ -296,14 +253,6 @@ namespace LLConverter_1
                     else
                     {
                         dirSymbols.Add(symbol);
-                    }
-                }
-                if (idx == grammarRule.SymbolsChain.Count - 1 ||
-                    (idx == grammarRule.SymbolsChain.Count - 2 && i == 0))
-                {
-                    if (token != grammarRule.Token)
-                    {
-                        dirSymbols.AddRange(Follow(grammarRule.Token));
                     }
                 }
             }
