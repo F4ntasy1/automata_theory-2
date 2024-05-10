@@ -212,7 +212,7 @@ namespace LLConverter_1
                 return result.Distinct().ToList();
             }
 
-            return grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL) ? Follow(grammarRule.Token) : [firstChainCharacter];
+            return grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL) ? Follow(grammarRule.Token).Distinct().ToList() : [firstChainCharacter];
         }
 
         private void FindDirectionSymbolsForEmptyChar(int currTokenIdx, int corrTokenIdx = -1)

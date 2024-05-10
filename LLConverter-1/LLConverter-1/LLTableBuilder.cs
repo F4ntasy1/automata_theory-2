@@ -73,7 +73,7 @@ namespace LLConverter_1
                 if (result.ContainsKey(rule.Token))
                 {
                     result[rule.Token] = result[rule.Token]
-                        .Concat(rule.DirectionSymbols)
+                        .Concat(rule.DirectionSymbols).Distinct()
                         .ToList();
                 }
                 else
@@ -145,13 +145,13 @@ namespace LLConverter_1
                         }
                         else
                         {
-                            var directions = new List<string>(1)
-                            {
-                            symbol
-                            };
+                            //var directions = new List<string>(1)
+                            //{
+                            //symbol
+                            //};
                             int? ptr = j != grammarRules[i].SymbolsChain.Count - 1
                                 ? rows.Count + grammarRules.Count + 1 : null;
-                            var row = new Row(symbol, directions, true, true, ptr,
+                            var row = new Row(symbol, [symbol], true, true, ptr,
                                 false, false);
                             rows.Add(row);
                         }
