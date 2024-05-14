@@ -228,8 +228,7 @@ namespace LLConverter_1
 
                 int idx = grammarRule.SymbolsChain.IndexOf(token);
 
-                if (idx == grammarRule.SymbolsChain.Count - 1 ||
-                    (idx == grammarRule.SymbolsChain.Count - 2 && GrammarRules.IndexOf(grammarRule) == 0))
+                if (idx == grammarRule.SymbolsChain.Count - 1 )
                 {
                     if (token != grammarRule.Token)
                     {
