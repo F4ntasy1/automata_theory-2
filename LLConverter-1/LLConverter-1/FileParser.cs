@@ -55,12 +55,10 @@ namespace LLConverter_1
                 //}
 
                 grammarRule.SymbolsChain = ParseChainSymbols(line);
-                if (0 == i)
-                {
-                    grammarRule.SymbolsChain.Add(END_SYMBOL);
-                }
+                
                 GrammarRules.Add(grammarRule);
             }
+            GrammarRules.Insert(0, new GrammarRule("'" + GrammarRules[0].Token, [GrammarRules[0].Token, "@"], []));
 
             FixLeftRecursive();
 
@@ -228,14 +226,26 @@ namespace LLConverter_1
 
                 int idx = grammarRule.SymbolsChain.IndexOf(token);
 
-                if (idx == grammarRule.SymbolsChain.Count - 1 )
+                if (idx == grammarRule.SymbolsChain.Count - 1 || ((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0)))
                 {
                     if (token != grammarRule.Token)
                     {
                         dirSymbols.AddRange(Follow(grammarRule.Token));
+                        if ((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0))
+                            dirSymbols.Add("@");
+
                         continue;
                     }
                 }
+                //if((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0))
+                //{
+                //    if (token != grammarRule.Token)
+                //    {
+                //        dirSymbols.AddRange(Follow(grammarRule.Token));
+                //        continue;
+                //    }
+
+                //}
                 if (idx != grammarRule.SymbolsChain.Count - 1)
                 {
                     string symbol = grammarRule.SymbolsChain[idx + 1];

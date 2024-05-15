@@ -25,7 +25,6 @@ namespace LLConverter_1
 
                 if (currRow.DirectionSymbols.Contains(currToken))
                 {
-                    if (currRow.Shift) currToken = _lexer.GetNextToken();
                     if (currRow.MoveToNextLine) stack.Push(currRowNumber + 1);
                     if (currRow.Pointer.HasValue)
                     {
@@ -37,7 +36,10 @@ namespace LLConverter_1
                         {
                             throw new Exception($"currRowNumber: {currRowNumber}, currToken: {currToken}, stack is empty");
                         }
+                        
                     }
+
+                    if (currRow.Shift) currToken = _lexer.GetNextToken();
                 }
                 else if (!currRow.Error)
                 {
