@@ -63,7 +63,7 @@
         public RowKey root { get; set; }
         public List<string> keys { get; set; }
 
-        public Dictionary<RowKey, List<Row>> Rows { get; set; }
+        public Dictionary<List<RowKey>, List<Row>> Rows { get; set; }
 
         //public List<Row> Rows { get; set; } = rows;
     }
