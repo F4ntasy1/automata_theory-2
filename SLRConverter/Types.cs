@@ -26,27 +26,45 @@
         bool end = false
     )
     {
+
+        Dictionary<string, List<RowKey>> Pointers { get; set; }
+
         // нетерминал
-        public string Token { get; set; } = token;
+        //public string Token { get; set; } = token;
 
-        // направляющее множество символов, с которых может начинаться правило
-        public List<string> DirectionSymbols { get; set; } = directionSymbols;
+        //// направляющее множество символов, с которых может начинаться правило
+        //public List<string> DirectionSymbols { get; set; } = directionSymbols;
 
-        // сдвиг
-        public bool Shift { get; set; } = shift;
+        //// сдвиг
+        //public bool Shift { get; set; } = shift;
 
-        public bool Error { get; set; } = error;
+        //public bool Error { get; set; } = error;
 
-        public int? Pointer { get; set; } = pointer;
+        //public int? Pointer { get; set; } = pointer;
 
-        // переходить на следующую строку после разбора текущей строки или нет (заносить ли в стек)
-        public bool MoveToNextLine { get; set; } = moveToNextLine;
+        //// переходить на следующую строку после разбора текущей строки или нет (заносить ли в стек)
+        //public bool MoveToNextLine { get; set; } = moveToNextLine;
 
-        public bool End { get; set; } = end;
+        //public bool End { get; set; } = end;
+    }
+
+    public struct RowKey
+    {
+        public string Token { get; set; }
+
+        public int Row { get; set; }
+
+        public int Column { get; set; }
+
     }
 
     public class Table(List<Row> rows)
     {
-        public List<Row> Rows { get; set; } = rows;
+        public RowKey root { get; set; }
+        public List<string> keys { get; set; }
+
+        Dictionary<RowKey, List<Row>> Rows { get; set; }
+
+        //public List<Row> Rows { get; set; } = rows;
     }
 }
