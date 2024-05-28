@@ -13,10 +13,16 @@
         public List<string> SymbolsChain { get; set; } = symbolsChain;
 
         // направляющее множество символов, с которых может начинаться правило
-        public List<string> DirectionSymbols { get; set; } = directionSymbols;
+        public List<TableCell> DirectionSymbols { get; set; }
     }
 
-    public class Row(
+    public struct TableCell
+    {
+        public bool shift;
+        public int ponter;
+    }
+
+    public class Column(
         string token,
         List<string> directionSymbols,
         bool shift,
@@ -27,7 +33,7 @@
     )
     {
 
-        Dictionary<string, List<RowKey>> Pointers { get; set; }
+        public Dictionary<string, TableCell> Pointers { get; set; }
 
         // нетерминал
         //public string Token { get; set; } = token;
@@ -58,12 +64,12 @@
 
     }
 
-    public class Table(List<Row> rows)
+    public class Table(List<Column> rows)
     {
-        public RowKey root { get; set; }
+        //public RowKey root { get; set; }
         public List<string> keys { get; set; }
 
-        public Dictionary<List<RowKey>, List<Row>> Rows { get; set; }
+        public Dictionary<int, Column> Rows { get; set; }
 
         //public List<Row> Rows { get; set; } = rows;
     }
