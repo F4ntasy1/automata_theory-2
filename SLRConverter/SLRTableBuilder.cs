@@ -6,61 +6,19 @@ using System.Threading.Tasks;
 
 namespace LLConverter_1
 {
-    public class LLTableBuilder()
+    public class SLRTableBuilder()
     {
         private const string EMPTY_CHAR = "e";
-        private const string END_CHAR = "@";
-
-        //public List<GrammarRule> GrammarRules { get; private set; } = grammarRules;
+        private const string END_CHAR = "@";        
 
         public Table Build(List<GrammarRule> grammarRules)
         {
-            //var ptrsLeftPart = new List<int>();
-            var leftRows = ParseLeftPart(grammarRules);
-            var rightRows = ParseRightPart(grammarRules);
-            //for (int i = 0; i < leftRows.Count; i++)
-            //{
-            //    leftRows[i].Pointer = ptrsLeftPart[i];
-            //}
-
-            return new Table((leftRows.Concat(rightRows)).ToList());
+            return new Table([]);
         }
 
         private List<Row> ParseLeftPart(List<GrammarRule> grammarRules)
         {
-            var result = new List<Row>();
-            int ptr = grammarRules.Count;
-            string nextToken = String.Empty;
-            for (int i = 0; i < grammarRules.Count; i++)
-            {
-                bool error = true;
-                if ((i + 1) < grammarRules.Count)
-                {
-                    nextToken = grammarRules[i + 1].Token;
-                }
-                if (nextToken == grammarRules[i].Token)
-                {
-                    error = false;
-                }
-                else
-                {
-                    nextToken = grammarRules[i].Token;
-                }
-                if (i == grammarRules.Count - 1 && !error)
-                {
-                    error = true;
-                }
-                var row = new Row(grammarRules[i].Token,
-                    grammarRules[i].DirectionSymbols, false, error, ptr,
-                    false, false);
-
-                result.Add(row);
-                ptr += grammarRules[i].SymbolsChain.Count;
-                //if (i == 0)
-                //{
-                //    ptr++;
-                //}
-            }
+            List<Row> result = [];
             return result;
         }
 
