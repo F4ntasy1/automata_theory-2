@@ -21,38 +21,7 @@ namespace LLConverter_1
 
             while (true)
             {
-                if (currRow.End && stack.Count == 0 && _lexer.IsEnd()) break;
-
-                if (currRow.DirectionSymbols.Contains(currToken))
-                {
-                    if (currRow.MoveToNextLine) stack.Push(currRowNumber + 1);
-                    if (currRow.Pointer.HasValue)
-                    {
-                        currRowNumber = currRow.Pointer.Value;
-                    }
-                    else 
-                    {
-                        if (!stack.TryPop(out currRowNumber))
-                        {
-                            throw new Exception($"currRowNumber: {currRowNumber}, currToken: {currToken}, stack is empty");
-                        }
-                        
-                    }
-
-                    if (currRow.Shift) currToken = _lexer.GetNextToken();
-                }
-                else if (!currRow.Error)
-                {
-                    currRowNumber++;
-                }
-                else
-                {
-                    throw new Exception($"currRowNumber: {currRowNumber}, currToken: {currToken}, directionSymbols not contains currToken");
-                }
-
-                if (currRow.End && stack.Count == 0 && _lexer.IsEnd()) break;
-
-                currRow = table.Rows[currRowNumber];
+                if (_lexer.IsEnd() && currRowNumber == 0 && stack.Count == 0 && currToken == table.RootName) return;
             }
         }
     }
