@@ -3,7 +3,7 @@
     public class GrammarRule(
         string token,
         List<string> symbolsChain,
-        List<TableCell> directionSymbols
+        List<RowKey> directionSymbols
     )
     {
         // левый нетерминал правила
@@ -13,7 +13,7 @@
         public List<string> SymbolsChain { get; set; } = symbolsChain;
 
         // направляющее множество символов, с которых может начинаться правило
-        public List<TableCell> DirectionSymbols { get; set; } = directionSymbols;
+        public List<RowKey> DirectionSymbols { get; set; } = directionSymbols;
     }
 
     public struct TableCell
@@ -36,9 +36,10 @@
         public int Column { get; set; }
     }
 
-    public class Table(List<Row> rows)
+    public class Table(List<Row> rows, List<GrammarRule> rules)
     {
         public string RootName { get;set; }
         public List<Row> Rows { get; set; } = rows;
+        public List<GrammarRule> GrammarRules { get; set; } = rules;
     }
 }

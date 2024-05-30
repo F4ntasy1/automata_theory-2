@@ -8,7 +8,7 @@ class Program
         FileParser fileParser = new("input3.txt", false);
         
         fileParser.ParseLinesToGrammarRules();
-        LLTableBuilder builder = new();
+        SLRTableBuilder builder = new();
         var table = builder.Build(fileParser.GrammarRules);
         TableSlider slider = new();
         table.Write("out.csv"); 
