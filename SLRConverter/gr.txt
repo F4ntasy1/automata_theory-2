@@ -1,0 +1,7 @@
+<S> -> Text <A> : <B> ;
+<A> -> number
+<A> -> <A> number
+<A> -> <B>
+<B> -> e
+<B> -> id
+<B> -> id <B>
