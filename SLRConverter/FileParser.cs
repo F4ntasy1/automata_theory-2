@@ -2,9 +2,9 @@
 using System.Data;
 using System.Text;
 
-namespace LLConverter_1
+namespace SLRConverter
 {
-    public class FileParser(string fileName, bool directionSymbolsExistsInFile)
+    public class FileParser(string fileName, bool fixLeftRecursion = false)
     {
         public List<GrammarRule> GrammarRules = [];
 
@@ -15,7 +15,6 @@ namespace LLConverter_1
         private const string END_SYMBOL = "@";
 
         private readonly string[] _lines = ReadFile(fileName);
-        private readonly bool _directionSymbolsExistsInFile = directionSymbolsExistsInFile;
 
         private List<string> _tokens = [];
 
@@ -40,48 +39,48 @@ namespace LLConverter_1
             {
                 GrammarRule grammarRule = new(_tokens[i], [], []);
 
-                int startPos = _tokens[i].Length + 2 + LINE_SEPARATION_LENGTH;
+                // Берёт строку без первой части с токеном
+                int startPos = _tokens[i].Length + LINE_SEPARATION_LENGTH;
                 string line = _lines[i][startPos..];
 
-                //if (_directionSymbolsExistsInFile)
-                //{
-                //    string[] arr = line.Split('/');
-                //    if (arr.Length != 2)
-                //    {
-                //        throw new Exception("Wrong line format");
-                //    }
-                //    line = arr[0];
-                //    grammarRule.DirectionSymbols = ParseDirectionSymbols(arr[1]);
-                //}
-
                 grammarRule.SymbolsChain = ParseChainSymbols(line);
-                
+
                 GrammarRules.Add(grammarRule);
             }
-            GrammarRules.Insert(0, new GrammarRule("'" + GrammarRules[0].Token, [GrammarRules[0].Token, "@"], []));
 
-            FixLeftRecursive();
+            AddNewAxiom();
 
-            foreach (GrammarRule gr in GrammarRules)
+            if (fixLeftRecursion)
             {
-                Console.Write(gr.Token + '\t');
-                foreach (var ch in gr.SymbolsChain)
-                {
-                    Console.Write(ch + ' ');
-                }
-                Console.WriteLine();
+                var leftRecursionFixer = new LeftRecursionFixer(GrammarRules);
+                leftRecursionFixer.RemoveLeftRecursion();
+                GrammarRules = leftRecursionFixer.GetGrammarRules();
             }
-            if (!_directionSymbolsExistsInFile)
-            {
-                FindDirectionSymbolsByRules();
-            }
+
+            FindDirectionSymbolsForGrammarRules();
+        }
+
+        /**
+         * Добавляет новую аксиому на основе существующей. 
+         * Например для S -> ... будет создана аксиома 'S -> S@
+         */
+        private void AddNewAxiom()
+        {
+            GrammarRules.Insert(
+                0,
+                new GrammarRule(
+                    "'" + GrammarRules[0].Token,
+                    [GrammarRules[0].Token, "@"],
+                    []
+                )
+            );
         }
 
         private void FixLeftRecursive()
         {
-            List<GrammarRule> ruleыWithLeftRecursion = GrammarRules.FindAll(HasLeftRecursion);
+            List<GrammarRule> rulesWithLeftRecursion = GrammarRules.FindAll(HasLeftRecursion);
             List<GrammarRule> rulesPassed = [];
-            foreach (GrammarRule grammarRule in ruleыWithLeftRecursion)
+            foreach (GrammarRule grammarRule in rulesWithLeftRecursion)
             {
                 RemoveLeftRecursion(grammarRule, rulesPassed);
                 rulesPassed.Add(grammarRule);
@@ -158,60 +157,50 @@ namespace LLConverter_1
         }
 
         /**
-         * Поиск направляющих символов
+         * Ищет и добавляет направляющие символы (FIRST*) для каждого правила.
          */
-        private void FindDirectionSymbolsByRules()
+        private void FindDirectionSymbolsForGrammarRules()
         {
-            List<int> listOfTokenIndexesWithEmptyChars = [];
-            for (int index = 0; index < GrammarRules.Count; index++)
+            for (int i = 0; i < GrammarRules.Count; i++)
             {
-                var grammarRule = GrammarRules[index];
-                if (0 == grammarRule.DirectionSymbols.Count)
+                GrammarRule rule = GrammarRules[i];
+                var directionSymbols = FindDirectionSymbolsForGrammarRule(i);
+
+                foreach (var symbol in directionSymbols)
                 {
-                    grammarRule.DirectionSymbols.AddRange(FindDirectionSymbolsForToken(index));
+                    rule.DirectionSymbols.Add(new RowKey(symbol, i + 1, 1));
                 }
             }
-            //List<int> listOfTokenIndexesWithEmptyChars = [];
-            //for (int index = 0; index < GrammarRules.Count; index++)
-            //{
-            //    var grammarRule = GrammarRules[index];
-            //    if (grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL))
-            //    {
-            //        listOfTokenIndexesWithEmptyChars.Add(index);
-            //    }
-            //    else if (0 == grammarRule.DirectionSymbols.Count)
-            //    {
-            //        grammarRule.DirectionSymbols.AddRange(FindDirectionSymbolsForToken(index));
-            //    }
-            //}
-
-            //foreach (int index in listOfTokenIndexesWithEmptyChars)
-            //{
-            //    FindDirectionSymbolsForEmptyChar(index);
-            //}
         }
 
-        private List<string> FindDirectionSymbolsForToken(int tokenIdx)
+        /**
+         * Ищет все направляющие символы (FIRST*) для конкретного правила.
+         */
+        private List<string> FindDirectionSymbolsForGrammarRule(int ruleIndex)
         {
-            var grammarRule = GrammarRules[tokenIdx];
+            var grammarRule = GrammarRules[ruleIndex];
             var firstChainCharacter = grammarRule.SymbolsChain[0];
 
             if (TokenIsNonTerminal(firstChainCharacter))
             {
-                List<string> result = [];
+                // Добавление нетерминала в направляющее множество
+                //var nonTerminal = START_TOKEN_CH + firstChainCharacter + END_TOKEN_CH;
+
+                List<string> result = [firstChainCharacter];
                 for (int i = 0; i < GrammarRules.Count; i++)
                 {
-                    if (GrammarRules[i].Token == firstChainCharacter && i != tokenIdx)
+                    if (GrammarRules[i].Token == firstChainCharacter && i != ruleIndex)
                     {
-                        result.AddRange(FindDirectionSymbolsForToken(i));
+                        result.AddRange(FindDirectionSymbolsForGrammarRule(i));
                     }
                 }
                 // Удаление дубликатов
                 return result.Distinct().ToList();
             }
            
-            
-            return grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL) ? Follow(grammarRule.Token).Distinct().ToList() : [firstChainCharacter];
+            return grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL) 
+                ? Follow(grammarRule.Token).Distinct().ToList() 
+                : [firstChainCharacter];
         }
 
         List<string> Follow(string token)
@@ -253,7 +242,7 @@ namespace LLConverter_1
                     {
                         List<GrammarRule> gramRules = GrammarRules.FindAll(x => x.Token == symbol && x.Token != grammarRule.Token);
                         for (int j = 0; j < gramRules.Count; j++)
-                            dirSymbols.AddRange(FindDirectionSymbolsForToken(GrammarRules.IndexOf(gramRules[j])));
+                            dirSymbols.AddRange(FindDirectionSymbolsForGrammarRule(GrammarRules.IndexOf(gramRules[j])));
                     }
                     else if(symbol == EMPTY_SYMBOL)
                     {
@@ -269,22 +258,6 @@ namespace LLConverter_1
             return dirSymbols;
         }
 
-        List<string> GetDirectionSymbolsByToken(string token)
-        {
-            //var token = GrammarRules[tokenIdx].Token;
-            int idx = 0;
-            List<string> result = [];
-            foreach (GrammarRule grammarRule in GrammarRules)
-            {
-                if (token == grammarRule.Token)
-                {
-                    result.AddRange(FindDirectionSymbolsForToken(idx));
-                }
-                idx++;
-            }
-            return result;
-        }
-
         bool TokenIsNonTerminal(string token)
         {
             foreach (GrammarRule grammarRule in GrammarRules)
@@ -297,6 +270,10 @@ namespace LLConverter_1
             return false;
         }
 
+        /**
+         * Преобразует строку к списку символов, разделенных пробелом. Нетерминалы должны 
+         * начинаться с "<" и заканчиваться ">". 
+         */
         private List<string> ParseChainSymbols(string str)
         {
             List<string> result = [];
@@ -328,15 +305,6 @@ namespace LLConverter_1
             return result;
         }
 
-        private List<string> ParseDirectionSymbols(string str)
-        {
-            if (!str.Contains(','))
-            {
-                return [str.Trim()];
-            }
-            return new(str.Trim().Split(','));
-        }
-
         /*
          * Находит на каждой строке левый нетерминал и добавляет в _tokens 
          */
@@ -349,13 +317,13 @@ namespace LLConverter_1
                 {
                     throw new Exception("Wrong token format");
                 }
-                string token = line[1..tokenEndPos];
+                string token = START_TOKEN_CH + line[1..tokenEndPos] + END_TOKEN_CH;
                 _tokens.Add(token);
             }
         }
 
         // Вспомогательный вывод
-        private void PrintGrammarRules()
+        public void PrintGrammarRules()
         {
             Console.WriteLine("<------------------->");
             foreach (var rule in GrammarRules)
@@ -368,7 +336,7 @@ namespace LLConverter_1
                 Console.Write(" / ");
                 foreach (var s in rule.DirectionSymbols)
                 {
-                    Console.Write(s + "");
+                    Console.Write(s.Token + "");
                 }
                 Console.WriteLine();
             }

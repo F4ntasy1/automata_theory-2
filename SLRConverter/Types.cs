@@ -1,4 +1,4 @@
-﻿namespace LLConverter_1
+﻿namespace SLRConverter
 {
     public class GrammarRule(
         string token,
@@ -27,13 +27,13 @@
         public Dictionary<string, TableCell> Cells { get; set; } = [];
     }
 
-    public struct RowKey
+    public struct RowKey(string token, int row, int column)
     {
-        public string Token { get; set; }
+        public string Token { get; set; } = token;
 
-        public int Row { get; set; }
+        public int Row { get; set; } = row;
 
-        public int Column { get; set; }
+        public int Column { get; set; } = column;
     }
 
     public class Table(List<Row> rows, List<GrammarRule> rules)

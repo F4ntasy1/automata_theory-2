@@ -1,13 +1,18 @@
-﻿using LLConverter_1;
+﻿using SLRConverter;
 using System.Text;
 
 class Program
 {
     public static void Main(string[] args)
     {
-        FileParser fileParser = new("input3.txt", false);
+        FileParser fileParser = new("gr.txt", true);
         
         fileParser.ParseLinesToGrammarRules();
+        fileParser.PrintGrammarRules();
+
+        return;
+
+        /*
         SLRTableBuilder builder = new();
         var table = builder.Build(fileParser.GrammarRules);
         TableSlider slider = new();
@@ -21,5 +26,6 @@ class Program
         {
             Console.WriteLine(ex.ToString());
         }
+        */
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LLConverter_1
+namespace SLRConverter
 {
     
     public class TableSlider
