@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <Compile Remove="LLTableCSVWriter.cs" />
-    <Compile Remove="SLRTableBuilder.cs" />
   </ItemGroup>
 
   <ItemGroup>
