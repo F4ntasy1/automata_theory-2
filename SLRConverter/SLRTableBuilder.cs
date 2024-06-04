@@ -84,11 +84,21 @@ namespace SLRConverter
                 {
                     if (item.Column != grammarRules[item.Row].SymbolsChain.Count - 1)
                     {
+                        var nextToken = grammarRules[item.Row].SymbolsChain[item.Column + 1];
+                        if (nextToken == END_CHAR)
+                        {
+                            rows[top].Cells.Add(END_CHAR, new TableCell
+                            {
+                                number = item.Row,
+                                shift = false
+                            });
+                            continue;
+                        }
                         var nextState = new RowKey
                         {
                             Row = item.Row,
                             Column = item.Column + 1,
-                            Token = grammarRules[item.Row].SymbolsChain[item.Column + 1]
+                            Token = nextToken
                         };
                         if (!IsNonTerminal(nextState.Token))
                         {
@@ -152,6 +162,8 @@ namespace SLRConverter
                             var mergedNonTerms = MergeNonterminals(nonTerminals);
                             foreach (var merged in mergedNonTerms)
                             {
+                                if (merged[0].Token == nextState.Token)
+                                    continue;
                                 int mergedIdx = GetIdxRowKey(statesDict, merged[0]);
                                 if (mergedIdx == -1)
                                 {
@@ -275,7 +287,7 @@ namespace SLRConverter
                     result.AddRange(rule.DirectionSymbols);
                 }
             }
-            return result;
+            return result.Distinct().ToList();
         }
        // private static List<int> MergeNonTerminals(List<GrammarRule> grammarRules, RowKey rowKey, 
        //     )
