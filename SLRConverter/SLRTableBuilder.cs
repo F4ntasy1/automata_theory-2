@@ -236,7 +236,8 @@ namespace SLRConverter
             var table = new Table(listRows, grammarRules)
             {
                 RootName = grammarRules[0].Token,
-                Names = ConvertDictRowKeyToList(statesDict)
+                RowNames = ConvertDictRowKeyToList(statesDict),
+                ColumnNames = GetAllGrammaticSymbol(grammarRules)
             };
             return table;
         }
@@ -260,6 +261,17 @@ namespace SLRConverter
             });
             return result;
         }
+        private static List<string> GetAllGrammaticSymbol(List<GrammarRule> grammarRules)
+        {
+            List<string> result = [];
+            grammarRules.ForEach(rule =>
+            {
+                result.Add(rule.Token);
+                result.AddRange(rule.SymbolsChain);
+            });
+            return result.Distinct().ToList();
+        }
+
         private static (List<RowKey> NonTerminals, List<RowKey> Terminal) 
             SplitDirectionSymbolsIntoTerminalAndNonTerminal(List<RowKey> directionSymbols)
         {

@@ -41,6 +41,7 @@
         public string RootName { get;set; }
         public List<Row> Rows { get; set; } = rows;
         public List<GrammarRule> GrammarRules { get; set; } = rules;
-        public List<List<RowKey>> Names { get; set; }
+        public List<List<RowKey>> RowNames { get; set; }
+        public List<string> ColumnNames { get; set; } = [];
     }
 }
