@@ -1,4 +1,5 @@
-﻿using SLRConverter;
+﻿
+using SLRConverter;
 using System.Text;
 
 class Program
@@ -23,18 +24,29 @@ class Program
         rules.Add(new GrammarRule("<S>", ["c"], [new RowKey { Token = "c", Row = 3, Column = 0 }]));
         return rules;
     }
+    private static List<GrammarRule> GetTestGrammarRule3()
+    {
+        List<GrammarRule> rules = [];
+        rules.Add(new GrammarRule("<S>", ["real", "<idlist>", "@"], [new RowKey { Column = 0, Row = 0, Token = "real" }]));
+        rules.Add(new GrammarRule("<idlist>", ["<idlist>", ",", "id"], [new RowKey { Token = "<idlist>", Row = 1, Column = 0 }, new RowKey { Column = 0, Row = 2, Token = "id" }]));
+        rules.Add(new GrammarRule("<idlist>", ["id"], [new RowKey { Token = "id", Column = 0, Row = 2 }]));
+        
+        return rules;
+    }
     public static void Main(string[] args)
     {
         //FileParser fileParser = new("gr1.txt", false);        
         //fileParser.ParseLinesToGrammarRules();
         //fileParser.PrintGrammarRules();
         //SLRTableBuilder.Build(fileParser.GrammarRules);        
-        var rules = GetTestGrammarRule1();
+        List<GrammarRule> rules = GetTestGrammarRule1();
        
         var table = SLRTableBuilder.Build(rules);
-        SLRTableCSVWriter.Write(table, "out.csv");
+        //SLRTableCSVWriter.Write(table, "out.csv");
         TableSlider tableSlider = new();
         tableSlider.RunSlider(table);
+        Console.WriteLine("all good");
+
         return;
 
         /*
