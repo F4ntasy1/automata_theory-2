@@ -36,6 +36,15 @@ namespace SLRConverter
                     {
                         if (!IsNonTerminal(rowKey.Token))
                         {
+                            if (rowKey.Token == END_CHAR)
+                            {
+                                rows[top].Cells.Add(END_CHAR, new TableCell
+                                {
+                                    shift = false,
+                                    number = rowKey.Row
+                                });
+                                continue;
+                            }
                             statesDict.Add(currState, [rowKey]);
                             rows.Add(currState, new Row());
                             var tableCell = new TableCell
@@ -128,6 +137,15 @@ namespace SLRConverter
                                         SplitDirectionSymbolsIntoTerminalAndNonTerminal(dirChars);
                             foreach (var terminal in terminals)
                             {
+                                if (terminal.Token == END_CHAR)
+                                {
+                                    rows[top].Cells.Add(END_CHAR, new TableCell
+                                    {
+                                        shift = false,
+                                        number = terminal.Row
+                                    });
+                                    continue;
+                                }
                                 int termIdx = GetIdxRowKey(statesDict, terminal);
                                 if (termIdx == -1)
                                 {
@@ -269,7 +287,10 @@ namespace SLRConverter
                 result.Add(rule.Token);
                 result.AddRange(rule.SymbolsChain);
             });
-            return result.Distinct().ToList();
+            result = result.Distinct().ToList();
+            result.Remove(END_CHAR);
+            result.Add(END_CHAR);
+            return result;
         }
 
         private static (List<RowKey> NonTerminals, List<RowKey> Terminal) 

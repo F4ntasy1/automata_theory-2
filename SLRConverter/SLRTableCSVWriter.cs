@@ -37,7 +37,7 @@ namespace SLRConverter
             }
             rowString[0] = rowNumber.ToString();
             //rowString.Insert(1, ";");
-            rowString[1] = rowName.ToString();
+            rowString[1] = rowName;
             //rowString.Insert(1, ";");
             foreach (var key in row.Cells.Keys)
             {
@@ -71,6 +71,11 @@ namespace SLRConverter
                     {
                         string separator = j == table.RowNames[i].Count - 1 ? "" : ", ";
                         var rowKey = table.RowNames[i][j];
+                        if (i == 0)
+                        {
+                            rowName += $"{rowKey.Token}";
+                            break;
+                        }
                         rowName += $"{rowKey.Token}{rowKey.Row}{rowKey.Column}{separator}";
                     }
                     writer.WriteLine(GetRowString(i, rowName, table.Rows[i]));
