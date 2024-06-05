@@ -10,7 +10,7 @@ namespace SLRConverter
     
     public class TableSlider
     {
-        private readonly Lexer _lexer = new("lexer3.txt");
+        private readonly Lexer _lexer = new("lexer.txt");
         public void RunSlider(Table table)
         {
             if (table == null) return;

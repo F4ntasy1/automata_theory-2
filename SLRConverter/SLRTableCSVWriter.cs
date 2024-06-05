@@ -37,7 +37,16 @@ namespace SLRConverter
             }
             rowString[0] = rowNumber.ToString();
             //rowString.Insert(1, ";");
-            rowString[1] = rowName;
+            string name = rowName;
+            if (name.Contains(","))
+            {
+                name = name.Replace(",", "comma");
+            }
+            else if (name.Contains(";"))
+            {
+                name = name.Replace(";", "semicolon");
+            }
+            rowString[1] = name;
             //rowString.Insert(1, ";");
             foreach (var key in row.Cells.Keys)
             {
@@ -69,7 +78,7 @@ namespace SLRConverter
                     for (int j = 0; j < table.RowNames[i].Count; j++)
                     //foreach (var rowKey in table.RowNames[i])
                     {
-                        string separator = j == table.RowNames[i].Count - 1 ? "" : ", ";
+                        string separator = j == table.RowNames[i].Count - 1 ? "" : " ";
                         var rowKey = table.RowNames[i][j];
                         if (i == 0)
                         {

@@ -33,8 +33,8 @@ class Program
        
         var table = SLRTableBuilder.Build(rules);
         SLRTableCSVWriter.Write(table, "out.csv");
-        //TableSlider tableSlider = new();
-        //tableSlider.RunSlider(table);
+        TableSlider tableSlider = new();
+        tableSlider.RunSlider(table);
         return;
 
         /*
