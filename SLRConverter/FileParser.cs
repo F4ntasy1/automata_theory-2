@@ -76,86 +76,6 @@ namespace SLRConverter
             );
         }
 
-        private void FixLeftRecursive()
-        {
-            List<GrammarRule> rulesWithLeftRecursion = GrammarRules.FindAll(HasLeftRecursion);
-            List<GrammarRule> rulesPassed = [];
-            foreach (GrammarRule grammarRule in rulesWithLeftRecursion)
-            {
-                RemoveLeftRecursion(grammarRule, rulesPassed);
-                rulesPassed.Add(grammarRule);
-            }
-        }
-
-        public void RemoveLeftRecursion(GrammarRule rule, List<GrammarRule> rulesPassed)
-        {
-            // Проверяем, есть ли левая рекурсия в правиле
-            if (HasLeftRecursion(rule))
-            {
-                // Создаем новый нетерминал для замены леворекурсивных правил
-                string newToken = rule.Token + "'";
-
-                var rules = GrammarRules.FindAll(x => x.Token == rule.Token && !HasLeftRecursion(x));
-
-                if(rules.Count == 0)
-                {
-                    throw new Exception("Can't remove left recursion");
-                }
-
-                /*B' -> aB'*/
-                GrammarRule newRuleForRemoveLeftRecursion = new(newToken, new(rule.SymbolsChain.GetRange(1, rule.SymbolsChain.Count - 1)), new(rule.DirectionSymbols));
-                newRuleForRemoveLeftRecursion.SymbolsChain.Add(newToken);
-
-                GrammarRules[GrammarRules.IndexOf(rule)] = newRuleForRemoveLeftRecursion;
-
-                if(rulesPassed.FindAll(x => x.Token == rule.Token).Count > 0)
-                {
-                    return;
-                }
-
-                GrammarRule ruleWithoutLeftRecursion = new (rules[0].Token, [], new(rule.DirectionSymbols));
-                for (int i = 0; i < rules.Count; i++)
-                {
-                    ruleWithoutLeftRecursion = rules[i];
-
-                    if (ruleWithoutLeftRecursion.SymbolsChain.Count == 0 )
-                    {
-                        continue;
-                    }
-
-                    GrammarRule newRule;
-                    if (ruleWithoutLeftRecursion.SymbolsChain[0] == EMPTY_SYMBOL)
-                    {
-                        newRule = new(rule.Token, [], new(rule.DirectionSymbols));
-                        newRule.SymbolsChain.AddRange(newRuleForRemoveLeftRecursion.SymbolsChain);
-                        //newRule.SymbolsChain.Add(newToken);
-
-                        if (rules.FindAll(x => x.SymbolsChain[0] != EMPTY_SYMBOL).Count == 0)
-                        {
-                            GrammarRules.Insert(GrammarRules.IndexOf(ruleWithoutLeftRecursion) + 1, newRule);
-                        }
-
-                        continue;
-                    }
-
-                    newRule = new(ruleWithoutLeftRecursion.Token, new(ruleWithoutLeftRecursion.SymbolsChain), new(rule.DirectionSymbols)); 
-                    newRule.SymbolsChain.Add(newToken);
-
-                    GrammarRules[GrammarRules.IndexOf(ruleWithoutLeftRecursion)] = newRule;
-                }
-
-                // Добавляем правила для обработки случая epsilon-продукции
-                GrammarRule epsilonRule = new(newToken, ["e"], new(rule.DirectionSymbols));
-
-                GrammarRules.Insert(GrammarRules.IndexOf(GrammarRules.FindLast(x => x.Token == newToken))+1, epsilonRule);
-            }
-        }
-
-        private static bool HasLeftRecursion(GrammarRule rule)
-        {
-            return rule.SymbolsChain.Count > 0 && rule.SymbolsChain[0] == rule.Token;
-        }
-
         /**
          * Ищет и добавляет направляющие символы (FIRST*) для каждого правила.
          */
@@ -164,43 +84,51 @@ namespace SLRConverter
             for (int i = 0; i < GrammarRules.Count; i++)
             {
                 GrammarRule rule = GrammarRules[i];
-                var directionSymbols = FindDirectionSymbolsForGrammarRule(i);
-
-                foreach (var symbol in directionSymbols)
-                {
-                    rule.DirectionSymbols.Add(new RowKey(symbol, i + 1, 1));
-                }
+                rule.DirectionSymbols.AddRange(FindDirectionSymbolsForGrammarRule(i));
             }
         }
 
         /**
          * Ищет все направляющие символы (FIRST*) для конкретного правила.
          */
-        private List<string> FindDirectionSymbolsForGrammarRule(int ruleIndex)
+        private List<RowKey> FindDirectionSymbolsForGrammarRule(int ruleIndex)
         {
             var grammarRule = GrammarRules[ruleIndex];
             var firstChainCharacter = grammarRule.SymbolsChain[0];
 
             if (TokenIsNonTerminal(firstChainCharacter))
             {
-                // Добавление нетерминала в направляющее множество
-                //var nonTerminal = START_TOKEN_CH + firstChainCharacter + END_TOKEN_CH;
-
-                List<string> result = [firstChainCharacter];
+                List<RowKey> result = [new RowKey(firstChainCharacter, ruleIndex, 0)];
                 for (int i = 0; i < GrammarRules.Count; i++)
                 {
                     if (GrammarRules[i].Token == firstChainCharacter && i != ruleIndex)
                     {
-                        result.AddRange(FindDirectionSymbolsForGrammarRule(i));
+                        var directionSymbolsForGrammarRule = FindDirectionSymbolsForGrammarRule(i);
+
+                        foreach (RowKey rowKey in directionSymbolsForGrammarRule)
+                        {
+                            if (!result.Exists(value => value.Token == rowKey.Token && 
+                                value.Row == rowKey.Row && value.Column == rowKey.Column))
+                            {
+                                result.Add(rowKey);
+                            }
+                        }
+                        //Заменено на код выше
+                        //result.AddRange(FindDirectionSymbolsForGrammarRule(i));
                     }
                 }
                 // Удаление дубликатов
-                return result.Distinct().ToList();
+                //return result.Distinct().ToList();
+                return result;
             }
-           
-            return grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL) 
-                ? Follow(grammarRule.Token).Distinct().ToList() 
-                : [firstChainCharacter];
+
+            if (grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL))
+            {
+                //return Follow(grammarRule.Token).Distinct().ToList();
+                return [];
+            }
+
+            return [new RowKey(firstChainCharacter, ruleIndex, 0)];
         }
 
         List<string> Follow(string token)
@@ -242,7 +170,9 @@ namespace SLRConverter
                     {
                         List<GrammarRule> gramRules = GrammarRules.FindAll(x => x.Token == symbol && x.Token != grammarRule.Token);
                         for (int j = 0; j < gramRules.Count; j++)
-                            dirSymbols.AddRange(FindDirectionSymbolsForGrammarRule(GrammarRules.IndexOf(gramRules[j])));
+                        {
+                            //dirSymbols.AddRange(FindDirectionSymbolsForGrammarRule(GrammarRules.IndexOf(gramRules[j])));
+                        }
                     }
                     else if(symbol == EMPTY_SYMBOL)
                     {
@@ -336,7 +266,7 @@ namespace SLRConverter
                 Console.Write(" / ");
                 foreach (var s in rule.DirectionSymbols)
                 {
-                    Console.Write(s.Token + "");
+                    Console.Write(s.Token + s.Row + s.Column + ";");
                 }
                 Console.WriteLine();
             }
