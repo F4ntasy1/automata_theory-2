@@ -113,79 +113,77 @@ namespace SLRConverter
                                 result.Add(rowKey);
                             }
                         }
-                        //Заменено на код выше
-                        //result.AddRange(FindDirectionSymbolsForGrammarRule(i));
                     }
                 }
-                // Удаление дубликатов
-                //return result.Distinct().ToList();
                 return result;
             }
 
             if (grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL))
             {
-                //return Follow(grammarRule.Token).Distinct().ToList();
-                return [];
+                return Follow(grammarRule.Token);
             }
 
             return [new RowKey(firstChainCharacter, ruleIndex, 0)];
         }
 
-        List<string> Follow(string token)
+        List<RowKey> Follow(string token)
         {
-            List<string> dirSymbols = [];
+            List<RowKey> result = [];
 
-            List<GrammarRule> grammarRules = GrammarRules.FindAll(x => x.SymbolsChain.Contains(token) && x.Token != token);
-
-            for (int i = 0; i < grammarRules.Count; i++)
+            for (int i = 0; i < GrammarRules.Count; i++)
             {
-                var grammarRule = grammarRules[i];
-
-                int idx = grammarRule.SymbolsChain.IndexOf(token);
-
-                if (idx == grammarRule.SymbolsChain.Count - 1 || ((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0)))
+                GrammarRule grammarRule = GrammarRules[i];
+                if (!grammarRule.SymbolsChain.Contains(token) || grammarRule.Token == token)
                 {
-                    if (token != grammarRule.Token)
-                    {
-                        dirSymbols.AddRange(Follow(grammarRule.Token));
-                        if ((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0))
-                            dirSymbols.Add("@");
-
-                        continue;
-                    }
+                    continue;
                 }
-                //if((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0))
-                //{
-                //    if (token != grammarRule.Token)
-                //    {
-                //        dirSymbols.AddRange(Follow(grammarRule.Token));
-                //        continue;
-                //    }
 
-                //}
-                if (idx != grammarRule.SymbolsChain.Count - 1)
+                int tokenIdx = grammarRule.SymbolsChain.IndexOf(token);
+
+                if (tokenIdx == grammarRule.SymbolsChain.Count - 1)
                 {
-                    string symbol = grammarRule.SymbolsChain[idx + 1];
-                    if (TokenIsNonTerminal(symbol))
+                    // если токен в конце цепочки, тогда ищем Follow для токена правила
+                    // A -> aS, искали для S, теперь ищем для A
+                    result.AddRange(Follow(grammarRule.Token));
+                }
+                else if (tokenIdx == grammarRule.SymbolsChain.Count - 2 && 0 == i)
+                {
+                    // если токен в конце начальной цепочки, тогда добавляем конечный символ
+                    // Z -> S@, искали для S, добавляем @
+                    result.Add(new RowKey("@", 0, GrammarRules[0].SymbolsChain.IndexOf("@")));
+                }
+                else
+                {
+                    // токен где-то в цепочке, смотрим следующий символ
+                    string nextSymbol = grammarRule.SymbolsChain[tokenIdx + 1];
+
+                    if (TokenIsNonTerminal(nextSymbol))
                     {
-                        List<GrammarRule> gramRules = GrammarRules.FindAll(x => x.Token == symbol && x.Token != grammarRule.Token);
-                        for (int j = 0; j < gramRules.Count; j++)
+                        // если следующий нетерминал, то ищем его направляющее множество
+                        result.Add(new RowKey(nextSymbol, i, tokenIdx + 1));
+                        for (int j = 0; j < GrammarRules.Count; j++)
                         {
-                            //dirSymbols.AddRange(FindDirectionSymbolsForGrammarRule(GrammarRules.IndexOf(gramRules[j])));
+                            var rule = GrammarRules[j];
+                            if (rule.Token == nextSymbol && rule.Token != grammarRule.Token)
+                            {
+                                result.AddRange(FindDirectionSymbolsForGrammarRule(j));
+                            }
                         }
                     }
-                    else if(symbol == EMPTY_SYMBOL)
+                    else if (nextSymbol == EMPTY_SYMBOL)
                     {
-                        dirSymbols.AddRange(Follow(grammarRule.Token));
+                        // если следующий пустой, то ищем Follow для токена цепочки
+                        result.AddRange(Follow(grammarRule.Token));
                     }
                     else
                     {
-                        dirSymbols.Add(symbol);
+                        // добавляем следующий, если выше условия не пройдены
+                        result.Add(new RowKey(nextSymbol, i, tokenIdx + 1));
                     }
                 }
             }
 
-            return dirSymbols;
+            return result;
         }
 
         bool TokenIsNonTerminal(string token)
