@@ -33,6 +33,7 @@ namespace SLRConverter
                     }
                 }
             }
+            _words.Add("@");
         }
 
         public string GetNextToken()
@@ -42,6 +43,9 @@ namespace SLRConverter
                 throw new Exception("File is ended");
             }
             string currWord = _words[_currWordIndex++];
+
+            if(currWord == "@")
+                return "@";
 
             if (double.TryParse(currWord, out double _))
             {
