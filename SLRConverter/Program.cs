@@ -35,9 +35,10 @@ class Program
     }
     public static void Main(string[] args)
     {
-        //FileParser fileParser = new("gr1.txt", false);        
-        //fileParser.ParseLinesToGrammarRules();
-        //fileParser.PrintGrammarRules();
+        FileParser fileParser = new("in3.txt", true);        
+        fileParser.ParseLinesToGrammarRules();
+        fileParser.PrintGrammarRules();
+        return;
         //SLRTableBuilder.Build(fileParser.GrammarRules);        
         List<GrammarRule> rules = GetTestGrammarRule1();
        
