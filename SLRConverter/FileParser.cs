@@ -57,7 +57,47 @@ namespace SLRConverter
                 GrammarRules = leftRecursionFixer.GetGrammarRules();
             }
 
+            if(((GrammarRules.Find(x => { return x.SymbolsChain.Count > 0 && x.SymbolsChain[0] == "e"; })) != null))
+                RemoveEmptyRools();
+
             FindDirectionSymbolsForGrammarRules();
+        }
+
+        private void RemoveEmptyRools()
+        {
+            while ((GrammarRules.Find(x => { return x.SymbolsChain.Count>0 && x.SymbolsChain[0] == "e"; })) != null)
+            {
+                GrammarRule gr = GrammarRules.Find(x => { return x.SymbolsChain.Count > 0 &&  x.SymbolsChain[0] == "e"; });
+
+                List<GrammarRule> grs = new (GrammarRules.FindAll(x => { return x.SymbolsChain.Contains(gr.Token); }));
+
+                foreach (var item in grs)
+                {
+                    GrammarRule newItem = new GrammarRule(new(item.Token), new(item.SymbolsChain), []);
+                    newItem.SymbolsChain.Remove(gr.Token);
+                    if(item.SymbolsChain.Count > 0 )
+                        GrammarRules.Add(newItem);
+                }
+                
+                GrammarRules.Remove(gr);
+            }
+
+            while ((GrammarRules.Find(x => { return x.SymbolsChain.Count == 0 ; })) != null)
+            {
+                GrammarRule gr = GrammarRules.Find(x => { return x.SymbolsChain.Count == 0; });
+                GrammarRules.Remove(gr);
+            }
+
+            GrammarRules.Sort((a,b) => { return a.Token.CompareTo(b.Token); });
+
+            GrammarRules.Insert(
+                0,
+                new GrammarRule(
+                    GrammarRules[0].Token,
+                    ["@"],
+                    []
+                )
+            );
         }
 
         /**

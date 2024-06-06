@@ -89,6 +89,177 @@ namespace SLRConverter
                     continue;
                 }
                 var listRowKey = statesDict[top];
+               
+               // bool doMerged = false;
+                if (listRowKey.Count == 1 )
+                {
+                    var item = listRowKey[0];
+                    if (item.Column != grammarRules[item.Row].SymbolsChain.Count - 1)
+                    {
+                        var nextToken = grammarRules[item.Row].SymbolsChain[item.Column + 1];
+                        if (nextToken == END_CHAR)
+                        {
+                            rows[top].Cells.Add(END_CHAR, new TableCell
+                            {
+                                number = item.Row,
+                                shift = false
+                            });
+                            continue;
+                        }
+                        var nextState = new RowKey
+                        {
+                            Row = item.Row,
+                            Column = item.Column + 1,
+                            Token = nextToken
+                        };
+                        if (!IsNonTerminal(nextState.Token))
+                        {
+                            int newIdx = GetIdxRowKey(statesDict, nextState);
+                            if (newIdx == -1)
+                            {
+                                newIdx = currState;
+                                statesDict.Add(newIdx, [nextState]);
+                                stack.Push(newIdx);
+                                rows.Add(newIdx, new Row());
+                                //newIdx = currState;
+                                currState++;
+                            }
+                            rows[top].Cells.Add(nextState.Token, new TableCell
+                            {
+                                number = newIdx,
+                                shift = true
+                            });
+
+                        }
+                        else
+                        {
+                            var dirChars = GetDirectyonsSymbolsByToken(grammarRules, nextState.Token);
+                            List<RowKey> nonTerminals;
+                            List<RowKey> terminals;
+                            (nonTerminals, terminals) =
+                                        SplitDirectionSymbolsIntoTerminalAndNonTerminal(dirChars);
+                            foreach (var terminal in terminals)
+                            {
+                                if (terminal.Token == END_CHAR)
+                                {
+                                    rows[top].Cells.Add(END_CHAR, new TableCell
+                                    {
+                                        shift = false,
+                                        number = nextState.Row
+                                    });
+                                    continue;
+                                }
+                                int termIdx = GetIdxRowKey(statesDict, terminal);
+                                if (termIdx == -1)
+                                {
+                                    statesDict.Add(currState, [terminal]);
+                                    stack.Push(currState);
+                                    termIdx = currState;
+                                    rows.Add(currState, new Row());
+                                    currState++;
+                                }
+                                var tableCell = new TableCell
+                                {
+                                    number = termIdx,
+                                    shift = true
+                                };
+                                if (!rows[top].Cells.ContainsKey(terminal.Token))
+                                    rows[top].Cells.Add(terminal.Token, tableCell);
+                            }
+                            int newIdx = GetIdxRowKey(statesDict, nextState);
+                            if (newIdx == -1)
+                            {
+                                newIdx = currState;
+                                var mergeExistNonTerm =
+                                MergeNonTerminalsWithExistNonTerm(nonTerminals, nextState);
+                                statesDict.Add(newIdx, mergeExistNonTerm);
+                                stack.Push(newIdx);
+                                rows.Add(newIdx, new Row());
+                                currState++;
+                            }
+                            rows[top].Cells.Add(nextState.Token, new TableCell
+                            {
+                                number = newIdx,
+                                shift = true
+                            });
+                            var mergedNonTerms = MergeNonterminals(nonTerminals);
+                            foreach (var merged in mergedNonTerms)
+                            {
+                                if (merged[0].Token == nextState.Token)
+                                    continue;
+                                int mergedIdx = GetIdxRowKey(statesDict, merged[0]);
+                                if (mergedIdx == -1)
+                                {
+                                    mergedIdx = currState;
+                                    statesDict.Add(mergedIdx, merged);
+                                    stack.Push(mergedIdx);
+                                    rows.Add(mergedIdx, new Row());
+                                    currState++;
+                                }
+                                rows[top].Cells.Add(merged[0].Token, new TableCell
+                                {
+                                    number = mergedIdx,
+                                    shift = true
+                                });
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        string token = grammarRules[item.Row].Token;
+                        List<string> wasInStack = [];
+                        Stack<string> rStack = new();
+                        rStack.Push(token);
+                        while (rStack.Count > 0)
+                        {
+                            var tmpTop = rStack.Pop();
+                            if (wasInStack.Contains(tmpTop))
+                                continue;
+                            wasInStack.Add(tmpTop);
+                            foreach (var grammarRule in grammarRules)
+                            {
+                                var tokenIdx = grammarRule.SymbolsChain.IndexOf(tmpTop);
+                                if (tokenIdx == -1)
+                                    continue;
+                                else if (tokenIdx == grammarRule.SymbolsChain.Count - 1)
+                                {
+                                    rStack.Push(grammarRule.Token);
+                                }
+                                else
+                                {
+                                    var ch = grammarRule.SymbolsChain[tokenIdx + 1];
+                                    if (!IsNonTerminal(ch))
+                                    {
+                                        rows[top].Cells.Add(ch, new TableCell
+                                        {
+                                            number = item.Row,
+                                            shift = false
+                                        });
+                                    }
+                                    else
+                                    {
+                                        List<string> listNonTerm = GetDirectyonsSymbolsByToken(grammarRules,
+                                            ch).ConvertAll(x => x.Token).Distinct().ToList();
+                                        var tableCell = new TableCell
+                                        {
+                                            number = item.Row,
+                                            shift = false
+                                        };
+                                        listNonTerm.ForEach(x =>
+                                        {
+                                            if (!rows[top].Cells.ContainsKey(x))
+                                            {
+                                                rows[top].Cells.Add(x, tableCell);
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    continue;
+                }
                 foreach (var item in listRowKey)
                 {
                     if (item.Column != grammarRules[item.Row].SymbolsChain.Count - 1)
@@ -142,7 +313,7 @@ namespace SLRConverter
                                     rows[top].Cells.Add(END_CHAR, new TableCell
                                     {
                                         shift = false,
-                                        number = terminal.Row
+                                        number = nextState.Row
                                     });
                                     continue;
                                 }
@@ -155,28 +326,44 @@ namespace SLRConverter
                                     rows.Add(currState, new Row());
                                     currState++;
                                 }
-                                rows[top].Cells.Add(terminal.Token, new TableCell
+                                var tableCell = new TableCell
                                 {
                                     number = termIdx,
                                     shift = true
-                                });
+                                };
+                                if (!rows[top].Cells.ContainsKey(terminal.Token))
+                                    rows[top].Cells.Add(terminal.Token, tableCell);
                             }
                             int newIdx = GetIdxRowKey(statesDict, nextState);
+                            bool doCell = true;
                             if (newIdx == -1)
                             {
-                                newIdx = currState;
-                                var mergeExistNonTerm =
-                                MergeNonTerminalsWithExistNonTerm(nonTerminals, nextState);
-                                statesDict.Add(newIdx, mergeExistNonTerm);
-                                stack.Push(newIdx);
-                                rows.Add(newIdx, new Row());                                
-                                currState++;
+                                if (rows[top].Cells.ContainsKey(nextState.Token))
+                                {
+                                    int numSt = rows[top].Cells[nextState.Token].number;
+                                    statesDict[numSt].Add(nextState);
+                                    doCell = false;
+                                }
+                                else
+                                {
+                                    newIdx = currState;
+                                    var mergeExistNonTerm =
+                                    MergeNonTerminalsWithExistNonTerm(nonTerminals, nextState);
+                                    statesDict.Add(newIdx, mergeExistNonTerm);
+                                    stack.Push(newIdx);
+                                    rows.Add(newIdx, new Row());
+                                    currState++;
+                                }
+                                
                             }
-                            rows[top].Cells.Add(nextState.Token, new TableCell
+                            if (doCell)
                             {
-                                number = newIdx,
-                                shift = true
-                            });
+                                rows[top].Cells.Add(nextState.Token, new TableCell
+                                {
+                                    number = newIdx,
+                                    shift = true
+                                });
+                            }                           
                             var mergedNonTerms = MergeNonterminals(nonTerminals);
                             foreach (var merged in mergedNonTerms)
                             {
@@ -193,7 +380,8 @@ namespace SLRConverter
                                 }
                                 rows[top].Cells.Add(merged[0].Token, new TableCell
                                 {
-                                    number = mergedIdx, shift = true
+                                    number = mergedIdx,
+                                    shift = true
                                 });
                             }
                         }
@@ -211,7 +399,7 @@ namespace SLRConverter
                             if (wasInStack.Contains(tmpTop))
                                 continue;
                             wasInStack.Add(tmpTop);
-                            foreach (var grammarRule in grammarRules) 
+                            foreach (var grammarRule in grammarRules)
                             {
                                 var tokenIdx = grammarRule.SymbolsChain.IndexOf(tmpTop);
                                 if (tokenIdx == -1)
@@ -227,27 +415,33 @@ namespace SLRConverter
                                     {
                                         rows[top].Cells.Add(ch, new TableCell
                                         {
-                                            number = item.Row, shift = false
+                                            number = item.Row,
+                                            shift = false
                                         });
                                     }
                                     else
                                     {
                                         List<string> listNonTerm = GetDirectyonsSymbolsByToken(grammarRules,
                                             ch).ConvertAll(x => x.Token).Distinct().ToList();
+                                        var tableCell = new TableCell
+                                        {
+                                            number = item.Row,
+                                            shift = false
+                                        };
                                         listNonTerm.ForEach(x =>
                                         {
-                                            rows[top].Cells.Add(x, new TableCell
+                                            if (!rows[top].Cells.ContainsKey(x))
                                             {
-                                                number = item.Row,
-                                                shift = false
-                                            }) ;
+                                                rows[top].Cells.Add(x, tableCell);
+                                            }
                                         });
                                     }
                                 }
                             }
                         }
                     }
-                }                
+
+                }
 
             }                 
             var listRows = ConvertDictRowToList(rows);
@@ -290,6 +484,7 @@ namespace SLRConverter
             result = result.Distinct().ToList();
             result.Remove(END_CHAR);
             result.Add(END_CHAR);
+            result.Remove(EMPTY_CHAR);
             return result;
         }
 

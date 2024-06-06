@@ -35,14 +35,14 @@ class Program
     }
     public static void Main(string[] args)
     {
-        //FileParser fileParser = new("gr1.txt", false);        
-        //fileParser.ParseLinesToGrammarRules();
-        //fileParser.PrintGrammarRules();
-        //SLRTableBuilder.Build(fileParser.GrammarRules);        
-        List<GrammarRule> rules = GetTestGrammarRule1();
+        FileParser fileParser = new("gr1.txt", false);        
+        fileParser.ParseLinesToGrammarRules();
+        fileParser.PrintGrammarRules();
+        var table = SLRTableBuilder.Build(fileParser.GrammarRules);        
+        //List<GrammarRule> rules = GetTestGrammarRule1();
        
-        var table = SLRTableBuilder.Build(rules);
-        //SLRTableCSVWriter.Write(table, "out.csv");
+        //var table = SLRTableBuilder.Build(rules);
+        SLRTableCSVWriter.Write(table, "out.csv");
         TableSlider tableSlider = new();
         tableSlider.RunSlider(table);
         Console.WriteLine("all good");

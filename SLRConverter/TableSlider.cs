@@ -29,7 +29,7 @@ namespace SLRConverter
 
             while (true)
             {
-                if (_lexer.IsEnd() && tempTokens.Count == 1 && currRowNumber == 0 && stack.Count == 0 && currToken == table.RootName) return;
+                if (_lexer.IsEnd() && tempTokens.Count <= 1 && currRowNumber == 0 && stack.Count <= 1 && currToken == table.RootName) return;
 
 
                 if (currRow.Cells.TryGetValue(currToken, out TableCell cell))    
