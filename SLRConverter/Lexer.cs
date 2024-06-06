@@ -38,33 +38,32 @@ namespace SLRConverter
             {
                 throw new Exception("File is ended");
             }
-            return _words[_currWordIndex++];
-            //string currWord = _words[_currWordIndex++];
+            string currWord = _words[_currWordIndex++];
 
-            //if (double.TryParse(currWord, out double _))
-            //{
-            //    return NUMBER_TOKEN;
-            //}
+            if (double.TryParse(currWord, out double _))
+            {
+                return NUMBER_TOKEN;
+            }
 
-            //bool isString = currWord.StartsWith('"') && currWord.EndsWith('"') && currWord.Length > 1;
-            //bool isChar = currWord.StartsWith('\'') && currWord.EndsWith('\'') && currWord.Length > 1;
+            bool isString = currWord.StartsWith('"') && currWord.EndsWith('"') && currWord.Length > 1;
+            bool isChar = currWord.StartsWith('\'') && currWord.EndsWith('\'') && currWord.Length > 1;
 
-            //if (isString) return STRING_TOKEN;
-            //if (isChar)
-            //{
-            //    if (currWord.Length > 3) 
-            //    {
-            //        throw new Exception($"Wrong character. Max length is 3. Token index: {_currWordIndex}");
-            //    }
-            //    return CHAR_TOKEN;
-            //}
+            if (isString) return STRING_TOKEN;
+            if (isChar)
+            {
+                if (currWord.Length > 3)
+                {
+                    throw new Exception($"Wrong character. Max length is 3. Token index: {_currWordIndex}");
+                }
+                return CHAR_TOKEN;
+            }
 
-            //if (!char.IsLetter(currWord[0]) && currWord[0] != '_')
-            //{
-            //    throw new Exception($"Token must start with a letter or _. Token index: {_currWordIndex}");
-            //}
+            if (!char.IsLetter(currWord[0]) && currWord[0] != '_')
+            {
+                throw new Exception($"Token must start with a letter or _. Token index: {_currWordIndex}");
+            }
 
-            //return ID_TOKEN;
+            return ID_TOKEN;
         }
 
         public bool IsEnd()
