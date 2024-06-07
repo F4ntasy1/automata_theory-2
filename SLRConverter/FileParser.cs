@@ -90,14 +90,14 @@ namespace SLRConverter
 
             GrammarRules.Sort((a,b) => { return a.Token.CompareTo(b.Token); });
 
-            GrammarRules.Insert(
-                0,
-                new GrammarRule(
-                    GrammarRules[0].Token,
-                    ["@"],
-                    []
-                )
-            );
+            //GrammarRules.Insert(
+            //    0,
+            //    new GrammarRule(
+            //        GrammarRules[0].Token,
+            //        ["@"],
+            //        []
+            //    )
+            //);
         }
 
         /**

@@ -14,7 +14,7 @@ namespace SLRConverter
         public string CHAR_TOKEN = "char";
 
         public List<string> ACCEPTABLE_SYMBOLS = [
-            ",", ";", "(", ")"];
+            ",", ";", "(", ")", "-", "+", "*"];
 
         private List<string> _words = [];
         private int _currWordIndex = 0;
@@ -65,8 +65,9 @@ namespace SLRConverter
                 return CHAR_TOKEN;
             }
 
-            if (!char.IsLetter(currWord[0]) && currWord[0] != '_' && 
-                ACCEPTABLE_SYMBOLS.Exists(val => val == currWord))
+            if (ACCEPTABLE_SYMBOLS.Contains(currWord)) return currWord;
+            if (!char.IsLetter(currWord[0]) && currWord[0] != '_' 
+                )
             {
                 throw new Exception($"Token must start with a letter or _. Token index: {_currWordIndex}");
             }

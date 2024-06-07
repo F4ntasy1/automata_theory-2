@@ -19,6 +19,8 @@ namespace SLRConverter
             Stack<int> stack = new();
             int currRowNumber = 0;
             string currToken = _lexer.GetNextToken();
+
+            if (currToken == "@") return;
             Row currRow = table.Rows[currRowNumber];
 
             bool wasR = false;
@@ -29,7 +31,7 @@ namespace SLRConverter
 
             while (true)
             {
-                if (_lexer.IsEnd() && tempTokens.Count <= 1 && currRowNumber == 0 && stack.Count <= 1 && currToken == table.RootName) return;
+                if (_lexer.IsEnd() && tempTokens.Count <= 1 && currRowNumber <= 1 && stack.Count <= 1 && currToken == table.RootName) return;
 
 
                 if (currRow.Cells.TryGetValue(currToken, out TableCell cell))    

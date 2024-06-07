@@ -32,60 +32,83 @@ namespace SLRConverter
                 if (top == 0)
                 {
                     List<string> alreadyMerged = [];
-                    foreach (var rowKey in grammarRules[0].DirectionSymbols)
+                    var symbols = MergeSymbols(grammarRules[0].DirectionSymbols);
+                    foreach ( var symbol in symbols )
                     {
-                        if (!IsNonTerminal(rowKey.Token))
+                        if (symbol[0].Token == END_CHAR)
                         {
-                            if (rowKey.Token == END_CHAR)
+                            rows[top].Cells.Add(END_CHAR, new TableCell
                             {
-                                rows[top].Cells.Add(END_CHAR, new TableCell
-                                {
-                                    shift = false,
-                                    number = rowKey.Row
-                                });
-                                continue;
-                            }
-                            statesDict.Add(currState, [rowKey]);
-                            rows.Add(currState, new Row());
-                            var tableCell = new TableCell
-                            {
-                                number = currState,
-                                shift = true
-                            };
-                            rows[top].Cells.Add(rowKey.Token, tableCell);
-                            stack.Push(currState);
+                                shift = false,
+                                number = symbol[0].Row
+                            });
+                            continue;
                         }
-                        else
+                        statesDict.Add(currState, symbol);
+                        rows.Add(currState, new Row());
+                        var tableCell = new TableCell
                         {
-                            if (alreadyMerged.Contains(rowKey.Token))
-                            {
-                                continue;
-                            }
-                            alreadyMerged.Add(rowKey.Token);
-                            List<RowKey> merged = [rowKey];
-                            foreach (var rowKey1 in grammarRules[0].DirectionSymbols)
-                            {
-                                if (rowKey.Token == rowKey1.Token)
-                                {
-                                    if (rowKey.Row == rowKey1.Row && rowKey.Column == rowKey1.Column)
-                                    {
-                                        continue;
-                                    }
-                                    merged.Add(rowKey1);
-                                }
-                            }
-                            statesDict.Add(currState, merged);
-                            rows.Add(currState, new Row());
-                            var tableCell = new TableCell
-                            {
-                                number = currState,
-                                shift = true
-                            };
-                            rows[top].Cells.Add(rowKey.Token, tableCell);
-                            stack.Push(currState);
-                        }
+                            number = currState,
+                            shift = true
+                        };
+                        rows[top].Cells.Add(symbol[0].Token, tableCell);
+                        stack.Push(currState);
                         currState++;
                     }
+                    //foreach (var rowKey in grammarRules[0].DirectionSymbols)
+                    //{
+                    //    if (!IsNonTerminal(rowKey.Token))
+                    //    {
+                    //        if (rowKey.Token == END_CHAR)
+                    //        {
+                    //            rows[top].Cells.Add(END_CHAR, new TableCell
+                    //            {
+                    //                shift = false,
+                    //                number = rowKey.Row
+                    //            });
+                    //            continue;
+                    //        }
+                    //        statesDict.Add(currState, [rowKey]);
+                    //        rows.Add(currState, new Row());
+                    //        var tableCell = new TableCell
+                    //        {
+                    //            number = currState,
+                    //            shift = true
+                    //        };
+                    //        rows[top].Cells.Add(rowKey.Token, tableCell);
+                    //        stack.Push(currState);
+                    //    }
+                    //    else
+                    //    {
+                    //        if (alreadyMerged.Contains(rowKey.Token))
+                    //        {
+                    //            continue;
+                    //        }
+                    //        alreadyMerged.Add(rowKey.Token);
+                    //        List<RowKey> merged = [rowKey];
+                    //        foreach (var rowKey1 in grammarRules[0].DirectionSymbols)
+                    //        {
+                    //            if (rowKey.Token == rowKey1.Token)
+                    //            {
+                    //                if (rowKey.Row == rowKey1.Row && rowKey.Column == rowKey1.Column)
+                    //                {
+                    //                    continue;
+                    //                }
+                    //                merged.Add(rowKey1);
+                    //            }
+                    //        }
+                    //        statesDict.Add(currState, merged);
+                    //        rows.Add(currState, new Row());
+                    //        var tableCell = new TableCell
+                    //        {
+                    //            number = currState,
+                    //            shift = true
+                    //        };
+                    //        rows[top].Cells.Add(rowKey.Token, tableCell);
+                    //        stack.Push(currState);
+                    //    }
+                    //    currState++;
+                    //}
                     continue;
                 }
                 var listRowKey = statesDict[top];
@@ -114,7 +137,7 @@ namespace SLRConverter
                         };
                         if (!IsNonTerminal(nextState.Token))
                         {
-                            int newIdx = GetIdxRowKey(statesDict, nextState);
+                            int newIdx = GetIdxRowKey(statesDict, [nextState]);
                             if (newIdx == -1)
                             {
                                 newIdx = currState;
@@ -134,44 +157,12 @@ namespace SLRConverter
                         else
                         {
                             var dirChars = GetDirectyonsSymbolsByToken(grammarRules, nextState.Token);
-                            List<RowKey> nonTerminals;
-                            List<RowKey> terminals;
-                            (nonTerminals, terminals) =
-                                        SplitDirectionSymbolsIntoTerminalAndNonTerminal(dirChars);
-                            foreach (var terminal in terminals)
-                            {
-                                if (terminal.Token == END_CHAR)
-                                {
-                                    rows[top].Cells.Add(END_CHAR, new TableCell
-                                    {
-                                        shift = false,
-                                        number = nextState.Row
-                                    });
-                                    continue;
-                                }
-                                int termIdx = GetIdxRowKey(statesDict, terminal);
-                                if (termIdx == -1)
-                                {
-                                    statesDict.Add(currState, [terminal]);
-                                    stack.Push(currState);
-                                    termIdx = currState;
-                                    rows.Add(currState, new Row());
-                                    currState++;
-                                }
-                                var tableCell = new TableCell
-                                {
-                                    number = termIdx,
-                                    shift = true
-                                };
-                                if (!rows[top].Cells.ContainsKey(terminal.Token))
-                                    rows[top].Cells.Add(terminal.Token, tableCell);
-                            }
-                            int newIdx = GetIdxRowKey(statesDict, nextState);
+                            int newIdx = GetIdxRowKey(statesDict, [nextState]);
                             if (newIdx == -1)
                             {
                                 newIdx = currState;
                                 var mergeExistNonTerm =
-                                MergeNonTerminalsWithExistNonTerm(nonTerminals, nextState);
+                                MergeNonTerminalsWithExistNonTerm(dirChars, nextState);
                                 statesDict.Add(newIdx, mergeExistNonTerm);
                                 stack.Push(newIdx);
                                 rows.Add(newIdx, new Row());
@@ -182,12 +173,12 @@ namespace SLRConverter
                                 number = newIdx,
                                 shift = true
                             });
-                            var mergedNonTerms = MergeNonterminals(nonTerminals);
+                            var mergedNonTerms = MergeSymbols(dirChars);
                             foreach (var merged in mergedNonTerms)
                             {
                                 if (merged[0].Token == nextState.Token)
                                     continue;
-                                int mergedIdx = GetIdxRowKey(statesDict, merged[0]);
+                                int mergedIdx = GetIdxRowKey(statesDict, merged);
                                 if (mergedIdx == -1)
                                 {
                                     mergedIdx = currState;
@@ -202,11 +193,81 @@ namespace SLRConverter
                                     shift = true
                                 });
                             }
+                                //}
+                                //List<RowKey> nonTerminals;
+                                //List<RowKey> terminals;
+                                //(nonTerminals, terminals) =
+                                //            SplitDirectionSymbolsIntoTerminalAndNonTerminal(dirChars);
+                                //foreach (var terminal in terminals)
+                                //{
+                                //    if (terminal.Token == END_CHAR)
+                                //    {
+                                //        rows[top].Cells.Add(END_CHAR, new TableCell
+                                //        {
+                                //            shift = false,
+                                //            number = nextState.Row
+                                //        });
+                                //        continue;
+                                //    }
+                                //    int termIdx = GetIdxRowKey(statesDict, terminal);
+                                //    if (termIdx == -1)
+                                //    {
+                                //        statesDict.Add(currState, [terminal]);
+                                //        stack.Push(currState);
+                                //        termIdx = currState;
+                                //        rows.Add(currState, new Row());
+                                //        currState++;
+                                //    }
+                                //    var tableCell = new TableCell
+                                //    {
+                                //        number = termIdx,
+                                //        shift = true
+                                //    };
+                                //    if (!rows[top].Cells.ContainsKey(terminal.Token))
+                                //        rows[top].Cells.Add(terminal.Token, tableCell);
+                                //}
+                                //int newIdx = GetIdxRowKey(statesDict, nextState);
+                                //if (newIdx == -1)
+                                //{
+                                //    newIdx = currState;
+                                //    var mergeExistNonTerm =
+                                //    MergeNonTerminalsWithExistNonTerm(nonTerminals, nextState);
+                                //    statesDict.Add(newIdx, mergeExistNonTerm);
+                                //    stack.Push(newIdx);
+                                //    rows.Add(newIdx, new Row());
+                                //    currState++;
+                                //}
+                                //rows[top].Cells.Add(nextState.Token, new TableCell
+                                //{
+                                //    number = newIdx,
+                                //    shift = true
+                                //});
+                                //var mergedNonTerms = MergeSymbols(nonTerminals);
+                                //foreach (var merged in mergedNonTerms)
+                                //{
+                                //    if (merged[0].Token == nextState.Token)
+                                //        continue;
+                                //    int mergedIdx = GetIdxRowKey(statesDict, merged[0]);
+                                //    if (mergedIdx == -1)
+                                //    {
+                                //        mergedIdx = currState;
+                                //        statesDict.Add(mergedIdx, merged);
+                                //        stack.Push(mergedIdx);
+                                //        rows.Add(mergedIdx, new Row());
+                                //        currState++;
+                                //    }
+                                //    rows[top].Cells.Add(merged[0].Token, new TableCell
+                                //    {
+                                //        number = mergedIdx,
+                                //        shift = true
+                                //    });
+                                //}
                         }
 
                     }
                     else
                     {
+
                         string token = grammarRules[item.Row].Token;
                         List<string> wasInStack = [];
                         Stack<string> rStack = new();
@@ -260,10 +321,12 @@ namespace SLRConverter
                     }
                     continue;
                 }
-                foreach (var item in listRowKey)
+                for (int k = 0; k < listRowKey.Count; k++)
                 {
+                    var item = listRowKey[k];
                     if (item.Column != grammarRules[item.Row].SymbolsChain.Count - 1)
                     {
+
                         var nextToken = grammarRules[item.Row].SymbolsChain[item.Column + 1];
                         if (nextToken == END_CHAR)
                         {
@@ -282,7 +345,7 @@ namespace SLRConverter
                         };
                         if (!IsNonTerminal(nextState.Token))
                         {
-                            int newIdx = GetIdxRowKey(statesDict, nextState);
+                            int newIdx = GetIdxRowKey(statesDict, [nextState]);
                             if (newIdx == -1)
                             {
                                 newIdx = currState;
@@ -301,40 +364,41 @@ namespace SLRConverter
                         }
                         else
                         {
+
                             var dirChars = GetDirectyonsSymbolsByToken(grammarRules, nextState.Token);
-                            List<RowKey> nonTerminals;
-                            List<RowKey> terminals;
-                            (nonTerminals, terminals) =
-                                        SplitDirectionSymbolsIntoTerminalAndNonTerminal(dirChars);
-                            foreach (var terminal in terminals)
-                            {
-                                if (terminal.Token == END_CHAR)
-                                {
-                                    rows[top].Cells.Add(END_CHAR, new TableCell
-                                    {
-                                        shift = false,
-                                        number = nextState.Row
-                                    });
-                                    continue;
-                                }
-                                int termIdx = GetIdxRowKey(statesDict, terminal);
-                                if (termIdx == -1)
-                                {
-                                    statesDict.Add(currState, [terminal]);
-                                    stack.Push(currState);
-                                    termIdx = currState;
-                                    rows.Add(currState, new Row());
-                                    currState++;
-                                }
-                                var tableCell = new TableCell
-                                {
-                                    number = termIdx,
-                                    shift = true
-                                };
-                                if (!rows[top].Cells.ContainsKey(terminal.Token))
-                                    rows[top].Cells.Add(terminal.Token, tableCell);
-                            }
-                            int newIdx = GetIdxRowKey(statesDict, nextState);
+                            //List<RowKey> nonTerminals;
+                            //List<RowKey> terminals;
+                            //(nonTerminals, terminals) =
+                            //            SplitDirectionSymbolsIntoTerminalAndNonTerminal(dirChars);
+                            //foreach (var terminal in terminals)
+                            //{
+                            //    if (terminal.Token == END_CHAR)
+                            //    {
+                            //        rows[top].Cells.Add(END_CHAR, new TableCell
+                            //        {
+                            //            shift = false,
+                            //            number = nextState.Row
+                            //        });
+                            //        continue;
+                            //    }
+                            //    int termIdx = GetIdxRowKey(statesDict, terminal);
+                            //    if (termIdx == -1)
+                            //    {
+                            //        statesDict.Add(currState, [terminal]);
+                            //        stack.Push(currState);
+                            //        termIdx = currState;
+                            //        rows.Add(currState, new Row());
+                            //        currState++;
+                            //    }
+                            //    var tableCell = new TableCell
+                            //    {
+                            //        number = termIdx,
+                            //        shift = true
+                            //    };
+                            //    if (!rows[top].Cells.ContainsKey(terminal.Token))
+                            //        rows[top].Cells.Add(terminal.Token, tableCell);
+                            //}
+                            int newIdx = GetIdxRowKey(statesDict, [nextState]);
                             bool doCell = true;
                             if (newIdx == -1)
                             {
@@ -348,7 +412,7 @@ namespace SLRConverter
                                 {
                                     newIdx = currState;
                                     var mergeExistNonTerm =
-                                    MergeNonTerminalsWithExistNonTerm(nonTerminals, nextState);
+                                    MergeNonTerminalsWithExistNonTerm(dirChars, nextState);
                                     statesDict.Add(newIdx, mergeExistNonTerm);
                                     stack.Push(newIdx);
                                     rows.Add(newIdx, new Row());
@@ -364,12 +428,12 @@ namespace SLRConverter
                                     shift = true
                                 });
                             }                           
-                            var mergedNonTerms = MergeNonterminals(nonTerminals);
-                            foreach (var merged in mergedNonTerms)
+                            var mergedChars = MergeSymbols(dirChars);
+                            foreach (var merged in mergedChars)
                             {
                                 if (merged[0].Token == nextState.Token)
                                     continue;
-                                int mergedIdx = GetIdxRowKey(statesDict, merged[0]);
+                                int mergedIdx = GetIdxRowKey(statesDict, merged);
                                 if (mergedIdx == -1)
                                 {
                                     mergedIdx = currState;
@@ -378,6 +442,7 @@ namespace SLRConverter
                                     rows.Add(mergedIdx, new Row());
                                     currState++;
                                 }
+                                if(!rows[top].Cells.ContainsKey(merged[0].Token))
                                 rows[top].Cells.Add(merged[0].Token, new TableCell
                                 {
                                     number = mergedIdx,
@@ -537,42 +602,56 @@ namespace SLRConverter
             //foreach (var item in grammarRules[])
             //for
         }
-        private static int GetIdxRowKey(Dictionary<int, List<RowKey>> statesDict, RowKey state)
+        private static int GetIdxRowKey(Dictionary<int, List<RowKey>> statesDict, List<RowKey> state)
         {
+            
             foreach (var key in statesDict.Keys)
             {
-                foreach (var val in statesDict[key])
+                statesDict[key].Sort((a,b) => a.Token.CompareTo(b.Token));
+                state.Sort((a, b) => a.Token.CompareTo(b.Token));
+                for (int i = 0; i < statesDict[key].Count && i < state.Count; i++)
                 {
-                    if (val.Row == state.Row && val.Column == state.Column 
-                        && val.Token == state.Token)
+                    if (statesDict[key][i].Row == state[i].Row && statesDict[key][i].Column == state[i].Column
+                        && statesDict[key][i].Token == state[i].Token)
                     {
                         return key;
                     }
                 }
+                //foreach (var val in statesDict[key])
+                //{
+                //    if (val.Row == state.Row && val.Column == state.Column 
+                //        && val.Token == state.Token)
+                //    {
+                //        return key;
+                //    }
+                //}
             }
             return -1;
         }
-        private static List<List<RowKey>> MergeNonterminals
-            (List<RowKey> nonTerminals)
+       // private static List<List<RowKey>>
+        private static List<List<RowKey>> MergeSymbols
+            (List<RowKey> symbols)
         {
             List<string> alreadyMerged = [];
             List<List<RowKey>> result = [];
-            for (int i = 0; i < nonTerminals.Count; i++) 
+            int idxResult = 0;
+            for (int i = 0; i < symbols.Count; i++) 
             {
-                if (alreadyMerged.Contains(nonTerminals[i].Token))
+                if (alreadyMerged.Contains(symbols[i].Token))
                 {
                     continue;
                 }
-                result.Add([nonTerminals[i]]);
-                foreach (RowKey tmp in nonTerminals)
+                result.Add([symbols[i]]);
+                idxResult++;
+                foreach (RowKey tmp in symbols)
                 {
-                    if (tmp.Token == nonTerminals[i].Token)
+                    if (tmp.Token == symbols[i].Token)
                     {
-                        if (tmp.Row == nonTerminals[i].Row && tmp.Column == nonTerminals[i].Column)
+                        if (tmp.Row == symbols[i].Row && tmp.Column == symbols[i].Column)
                         {
                             continue;
                         }
-                        result[i].Add(tmp);
+                        result[idxResult>=result.Count ? result.Count-1 : idxResult].Add(tmp);
                         if (!alreadyMerged.Contains(tmp.Token))
                             alreadyMerged.Add(tmp.Token);
                     }
