@@ -43,17 +43,6 @@ namespace LLConverter_1
                 int startPos = _tokens[i].Length + 2 + LINE_SEPARATION_LENGTH;
                 string line = _lines[i][startPos..];
 
-                //if (_directionSymbolsExistsInFile)
-                //{
-                //    string[] arr = line.Split('/');
-                //    if (arr.Length != 2)
-                //    {
-                //        throw new Exception("Wrong line format");
-                //    }
-                //    line = arr[0];
-                //    grammarRule.DirectionSymbols = ParseDirectionSymbols(arr[1]);
-                //}
-
                 grammarRule.SymbolsChain = ParseChainSymbols(line);
                 
                 GrammarRules.Add(grammarRule);
@@ -96,6 +85,7 @@ namespace LLConverter_1
                 // Создаем новый нетерминал для замены леворекурсивных правил
                 string newToken = rule.Token + "'";
 
+                //находим все правила без левой рекурсии
                 var rules = GrammarRules.FindAll(x => x.Token == rule.Token && !HasLeftRecursion(x));
 
                 if(rules.Count == 0)
@@ -103,17 +93,19 @@ namespace LLConverter_1
                     throw new Exception("Can't remove left recursion");
                 }
 
-                /*B' -> aB'*/
+                //B' -> aB'
                 GrammarRule newRuleForRemoveLeftRecursion = new(newToken, new(rule.SymbolsChain.GetRange(1, rule.SymbolsChain.Count - 1)), new(rule.DirectionSymbols));
                 newRuleForRemoveLeftRecursion.SymbolsChain.Add(newToken);
 
                 GrammarRules[GrammarRules.IndexOf(rule)] = newRuleForRemoveLeftRecursion;
 
+                //если уже обработали этот нетерминал, то возврат
                 if(rulesPassed.FindAll(x => x.Token == rule.Token).Count > 0)
                 {
                     return;
                 }
 
+                //А -> bB'
                 GrammarRule ruleWithoutLeftRecursion = new (rules[0].Token, [], new(rule.DirectionSymbols));
                 for (int i = 0; i < rules.Count; i++)
                 {
@@ -125,11 +117,11 @@ namespace LLConverter_1
                     }
 
                     GrammarRule newRule;
+                    //обработка правил типа А -> е
                     if (ruleWithoutLeftRecursion.SymbolsChain[0] == EMPTY_SYMBOL)
                     {
                         newRule = new(rule.Token, [], new(rule.DirectionSymbols));
                         newRule.SymbolsChain.AddRange(newRuleForRemoveLeftRecursion.SymbolsChain);
-                        //newRule.SymbolsChain.Add(newToken);
 
                         if (rules.FindAll(x => x.SymbolsChain[0] != EMPTY_SYMBOL).Count == 0)
                         {
@@ -171,24 +163,6 @@ namespace LLConverter_1
                     grammarRule.DirectionSymbols.AddRange(FindDirectionSymbolsForToken(index));
                 }
             }
-            //List<int> listOfTokenIndexesWithEmptyChars = [];
-            //for (int index = 0; index < GrammarRules.Count; index++)
-            //{
-            //    var grammarRule = GrammarRules[index];
-            //    if (grammarRule.SymbolsChain.Contains(EMPTY_SYMBOL))
-            //    {
-            //        listOfTokenIndexesWithEmptyChars.Add(index);
-            //    }
-            //    else if (0 == grammarRule.DirectionSymbols.Count)
-            //    {
-            //        grammarRule.DirectionSymbols.AddRange(FindDirectionSymbolsForToken(index));
-            //    }
-            //}
-
-            //foreach (int index in listOfTokenIndexesWithEmptyChars)
-            //{
-            //    FindDirectionSymbolsForEmptyChar(index);
-            //}
         }
 
         private List<string> FindDirectionSymbolsForToken(int tokenIdx)
@@ -218,16 +192,21 @@ namespace LLConverter_1
         {
             List<string> dirSymbols = [];
 
+            //находим все правила, в правых частях которых есть искомый токен
             List<GrammarRule> grammarRules = GrammarRules.FindAll(x => x.SymbolsChain.Contains(token) && x.Token != token);
-
+            
+            //пробегаемся по всем найденным правилам
             for (int i = 0; i < grammarRules.Count; i++)
             {
                 var grammarRule = grammarRules[i];
 
+
                 int idx = grammarRule.SymbolsChain.IndexOf(token);
 
+                //проверяем стоит ли данный токен в конце правила
                 if (idx == grammarRule.SymbolsChain.Count - 1 || ((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0)))
                 {
+                    //если да и искомый токен не является правой частью правила, то находим follow у токена этого правила
                     if (token != grammarRule.Token)
                     {
                         dirSymbols.AddRange(Follow(grammarRule.Token));
@@ -237,28 +216,24 @@ namespace LLConverter_1
                         continue;
                     }
                 }
-                //if((idx == grammarRule.SymbolsChain.Count - 2) && (GrammarRules.IndexOf(grammarRule) == 0))
-                //{
-                //    if (token != grammarRule.Token)
-                //    {
-                //        dirSymbols.AddRange(Follow(grammarRule.Token));
-                //        continue;
-                //    }
-
-                //}
+                //иначе
                 if (idx != grammarRule.SymbolsChain.Count - 1)
                 {
+                    //находим  символ стоящий после токена
                     string symbol = grammarRule.SymbolsChain[idx + 1];
+                    //если этот символ нетерминал, то находим First* этого нетерминала
                     if (TokenIsNonTerminal(symbol))
                     {
                         List<GrammarRule> gramRules = GrammarRules.FindAll(x => x.Token == symbol && x.Token != grammarRule.Token);
                         for (int j = 0; j < gramRules.Count; j++)
                             dirSymbols.AddRange(FindDirectionSymbolsForToken(GrammarRules.IndexOf(gramRules[j])));
                     }
+                    //иначе, если символ является пустым символом, то находим Follow данного правила
                     else if(symbol == EMPTY_SYMBOL)
                     {
                         dirSymbols.AddRange(Follow(grammarRule.Token));
                     }
+                    //иначе это терминал и добавляем его в направляющие символы
                     else
                     {
                         dirSymbols.Add(symbol);
@@ -266,12 +241,12 @@ namespace LLConverter_1
                 }
             }
 
+            //возврат направляющих символов
             return dirSymbols;
         }
 
         List<string> GetDirectionSymbolsByToken(string token)
         {
-            //var token = GrammarRules[tokenIdx].Token;
             int idx = 0;
             List<string> result = [];
             foreach (GrammarRule grammarRule in GrammarRules)

@@ -21,8 +21,10 @@ namespace LLConverter_1
 
             while (true)
             {
+                //выход если строка может быть конечной, стек пустой, и конец цепочки
                 if (currRow.End && stack.Count == 0 && _lexer.IsEnd()) break;
 
+                //если текущей токен является направляющим символом, начинаем обработку строки
                 if (currRow.DirectionSymbols.Contains(currToken))
                 {
                     if (currRow.MoveToNextLine) stack.Push(currRowNumber + 1);
@@ -41,10 +43,12 @@ namespace LLConverter_1
 
                     if (currRow.Shift) currToken = _lexer.GetNextToken();
                 }
+                //иначе, если это строка может быть не ошибочной, то передвигаемся на следующую строку
                 else if (!currRow.Error)
                 {
                     currRowNumber++;
                 }
+                //иначе ошибка
                 else
                 {
                     throw new Exception($"currRowNumber: {currRowNumber}, currToken: {currToken}, directionSymbols not contains currToken");
