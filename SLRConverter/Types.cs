@@ -15,18 +15,21 @@
         // направляющее множество символов, с которых может начинаться правило
         public List<RowKey> DirectionSymbols { get; set; } = directionSymbols;
     }
-
+    //Ячейка таблицы
     public struct TableCell
     {
-        public bool shift;//true - сдвиг, false - свертка
+        //true - сдвиг, false - свертка
+        //number - это либо номер ряда для свертки, либо правило по которому свёрка
+        public bool shift;
         public int number;
     }
-
+    //Ряд таблицы
     public class Row
     {
+        //Ключ словаря - это символ по которому происходит либо сдвиг, либо свертка
         public Dictionary<string, TableCell> Cells { get; set; } = [];
     }
-
+    //Грамматическое вхождение
     public struct RowKey(string token, int row, int column)
     {
         public string Token { get; set; } = token;

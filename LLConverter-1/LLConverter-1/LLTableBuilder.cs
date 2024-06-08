@@ -8,24 +8,19 @@ namespace LLConverter_1
 {
     public class LLTableBuilder()
     {
+        //Константа для путсого символа
         private const string EMPTY_CHAR = "e";
+        //Константа для символа конца разбора
         private const string END_CHAR = "@";
-
-        //public List<GrammarRule> GrammarRules { get; private set; } = grammarRules;
-
+        //Метод для постройки LL(1) таблицы по списку грамматических правил
         public Table Build(List<GrammarRule> grammarRules)
         {
-            //var ptrsLeftPart = new List<int>();
             var leftRows = ParseLeftPart(grammarRules);
             var rightRows = ParseRightPart(grammarRules);
-            //for (int i = 0; i < leftRows.Count; i++)
-            //{
-            //    leftRows[i].Pointer = ptrsLeftPart[i];
-            //}
 
             return new Table((leftRows.Concat(rightRows)).ToList());
         }
-
+        //Метод для парсинга левой части правил грамматики
         private List<Row> ParseLeftPart(List<GrammarRule> grammarRules)
         {
             var result = new List<Row>();
@@ -34,10 +29,12 @@ namespace LLConverter_1
             for (int i = 0; i < grammarRules.Count; i++)
             {
                 bool error = true;
+
                 if ((i + 1) < grammarRules.Count)
                 {
                     nextToken = grammarRules[i + 1].Token;
                 }
+                //Вычиление ошибки
                 if (nextToken == grammarRules[i].Token)
                 {
                     error = false;
@@ -50,20 +47,17 @@ namespace LLConverter_1
                 {
                     error = true;
                 }
+                //Создание ряда
                 var row = new Row(grammarRules[i].Token,
                     grammarRules[i].DirectionSymbols, false, error, ptr,
                     false, false);
 
                 result.Add(row);
                 ptr += grammarRules[i].SymbolsChain.Count;
-                //if (i == 0)
-                //{
-                //    ptr++;
-                //}
             }
             return result;
         }
-
+        //Метод по созданию словря, гдк ключ нетерминал, а знаечение список направляющих символов
         private Dictionary<string, List<string>> DoMapOfNonTerminal(
             List<GrammarRule> grammarRules)
         {
@@ -83,32 +77,17 @@ namespace LLConverter_1
             }
             return result;
         }
-
-        private List<int> ParseRulesForEndChars(List<GrammarRule> grammarRules)
-        {
-            var result = new List<int>();
-            var firstChar = grammarRules[0].Token;                        
-            for (int i = 0; i < grammarRules.Count; i++)
-            {
-                if (grammarRules[i].Token != firstChar) 
-                {
-                    break;
-                }
-                result.Add(i);
-            }
-            return result;
-        }
-
+        //Метод для парсинга правой части правил грамматики
         private List<Row> ParseRightPart(List<GrammarRule> grammarRules)
         {
-            var dict = DoMapOfNonTerminal(grammarRules);
-            //var endsIdx = ParseRulesForEndChars(grammarRules);
+            var dict = DoMapOfNonTerminal(grammarRules);            
             var rows = new List<Row>();
             for (int i = 0; i < grammarRules.Count; i++)
             {
                 for (int j = 0; j < grammarRules[i].SymbolsChain.Count; j++)
                 {
-                    var symbol = grammarRules[i].SymbolsChain[j];                    
+                    var symbol = grammarRules[i].SymbolsChain[j]; 
+                    //Если текущий символ нетерминал содаём ряд дл нетермминала
                     if (dict.ContainsKey(symbol))
                     {
                         var ptr = grammarRules.FindIndex(r => r.Token == symbol);
@@ -117,10 +96,6 @@ namespace LLConverter_1
                         {
                             moveToNextLine = false;
                         }
-                        //var moveToNextLine = j == GrammarRules.
-                        //var moveToNextLine = j == GrammarRules[i].SymbolsChain.Count - 1
-                        //    ? false : true;
-                        //var end = i == rules.Count - 1
                         var row = new Row(symbol,
                             dict[symbol], false, true, ptr, moveToNextLine, false);
                         rows.Add(row);
@@ -130,6 +105,7 @@ namespace LLConverter_1
                         bool moveToNextLine = j == grammarRules[i]
                             .SymbolsChain.Count - 1
                                 ? false : true;
+                        //Если текущий символ пустой содаём ряд для пустого
                         if (symbol == EMPTY_CHAR)
                         {
                             var row = new Row(symbol, grammarRules[i]
@@ -137,18 +113,16 @@ namespace LLConverter_1
                                 false, true, null, false, false);
                             rows.Add(row);
                         }
+                        //Если текущий символ конец разбора содаём ряд для него
                         else if (symbol == END_CHAR)
                         {
                             var row = new Row(symbol, [symbol], 
                                 true, true, null, false, true);
                             rows.Add(row);
                         }
+                        //Если текущий символ терминал содаём ряд для него
                         else
                         {
-                            //var directions = new List<string>(1)
-                            //{
-                            //symbol
-                            //};
                             int? ptr = j != grammarRules[i].SymbolsChain.Count - 1
                                 ? rows.Count + grammarRules.Count + 1 : null;
                             var row = new Row(symbol, [symbol], true, true, ptr,
@@ -157,20 +131,7 @@ namespace LLConverter_1
                         }
 
                     }
-                    //if (endsIdx.Contains(i) && j == GrammarRules[i].SymbolsChain.Count - 1)
-                    //{
-                    //    var row = new Row(END_CHAR,
-                    //        [END_CHAR], true, true, null, false, true);
-                    //    rows.Add(row);
-                    //}
                 }
-                //int ptrLeftPart = rows.Count - GrammarRules[i]
-                //    .SymbolsChain.Count + GrammarRules.Count;
-                //if (endsIdx.Contains(i))
-                //{
-                //    ptrLeftPart--;
-                //}    
-                //leftPartsPtrs.Add(ptrLeftPart);
             }
             return rows;
         }

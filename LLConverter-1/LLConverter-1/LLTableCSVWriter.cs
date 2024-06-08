@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace LLConverter_1
 {
+    //Класс для выода таблицы в csv формате
     public static class LLTableCSVWriter
     {
         private static string WriteBool(bool value)
@@ -37,18 +38,7 @@ namespace LLConverter_1
                 {
                     string token = table.Rows[i].Token == ";" ? "semicolon" 
                         : table.Rows[i].Token;
-                    List<string> dirChars = table.Rows[i].DirectionSymbols;
-                    //dirChars.ForEach(x => { if (x == ";") x = "semicolon"; });
-                    //string directCharStr = string
-                    //for (int j = 0; j < dirChars.Count; j++)
-                    //{
-                    //    if (dirChars[j] == ";")
-                    //    {
-                    //        dirChars[j] = "semicolon";
-                    //    }
-                    //}
-                    //  .Join(",", table.Rows[i].DirectionSymbols);
-                    //directCharStr
+                    List<string> dirChars = table.Rows[i].DirectionSymbols;                 
                     string line = i.ToString() + ";";                    
                     line += token + ";" +
                         string.Join(",", dirChars);
